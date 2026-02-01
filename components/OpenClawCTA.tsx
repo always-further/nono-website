@@ -10,7 +10,7 @@ export default function OpenClawCTA() {
         </p>
 
         <a
-          href="https://openclaw.ai"
+          href="https://docs.nono.sh/profiles/openclaw"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex flex-col items-center gap-6 group"
