@@ -7,6 +7,7 @@ import { Menu, X } from "lucide-react";
 const navLinks = [
   { href: "#features", label: "Features" },
   { href: "#quick-start", label: "Quick Start" },
+  { href: "https://docs.nono.sh", label: "Docs", external: true },
   { href: "https://github.com/lukehinds/nono", label: "GitHub", external: true },
   { href: "https://discord.gg/pPcjYzGvbS", label: "Discord", external: true },
 ];
