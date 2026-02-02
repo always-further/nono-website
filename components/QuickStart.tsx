@@ -5,28 +5,16 @@ import { Check, Copy } from "lucide-react";
 
 const codeExamples = [
   {
-    label: "Basic",
+    label: "macOS (Homebrew)",
+    code: `brew tap lukehinds/nono
+brew install nono`,
+  },
+  {
+    label: "Source",
     code: `# Build from source
 cargo build --release
 
-# Run with access to current directory only
-nono --allow . -- your-command`,
-  },
-  {
-    label: "Claude Code",
-    code: `# Run Claude Code with restricted access
-nono --allow ./my-project -- claude`,
-  },
-  {
-    label: "Advanced",
-    code: `# Separate read and write permissions
-nono --read ./src --write ./output -- cargo build
-
-# Multiple paths
-nono --allow ./project-a --allow ./project-b -- command
-
-# Dry run (show what would be sandboxed)
-nono --allow . --dry-run -- command`,
+# Binary will be at target/release/nono`,
   },
 ];
 
@@ -44,11 +32,10 @@ export default function QuickStart() {
     <section id="quick-start" className="py-24 px-6 bg-black">
       <div className="max-w-5xl mx-auto">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
-          Quick start
+          Install
         </h2>
         <p className="text-muted text-center mb-12 max-w-2xl mx-auto">
-          Get up and running in seconds. NONO is designed to be simple and
-          intuitive.
+          Get up and running in seconds.
         </p>
 
         <div className="bg-code-bg rounded-xl overflow-hidden">
@@ -87,16 +74,16 @@ export default function QuickStart() {
         </div>
 
         <p className="text-muted text-center mt-8 text-sm">
-          Requires Rust toolchain. See{" "}
+          Building from source requires Rust toolchain. See{" "}
           <a
-            href="https://github.com/lukehinds/nono"
+            href="https://docs.nono.sh"
             target="_blank"
             rel="noopener noreferrer"
             className="text-accent hover:underline"
           >
-            the repository
+            the docs
           </a>{" "}
-          for detailed installation instructions.
+          for more installation options.
         </p>
       </div>
     </section>

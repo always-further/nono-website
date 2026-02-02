@@ -25,7 +25,7 @@ export default function Platforms() {
           Platform support
         </h2>
         <p className="text-muted text-center mb-12 max-w-2xl mx-auto">
-          NONO uses native OS security primitives for maximum reliability and
+          nono uses native OS security primitives for maximum reliability and
           performance.
         </p>
 

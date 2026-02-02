@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="text-center mb-12">
           <h2 className="text-2xl font-bold mb-4">Join the community</h2>
           <p className="text-muted mb-6">
-            Get help, share feedback, and connect with other NONO users.
+            Get help, share feedback, and connect with other nono users.
           </p>
           <a
             href="https://discord.gg/pPcjYzGvbS"
@@ -33,12 +33,12 @@ export default function Footer() {
           <div className="flex items-center gap-3">
             <Image
               src="/nono-mascot.png"
-              alt="NONO"
+              alt="nono"
               width={32}
               height={32}
               className="rounded-lg"
             />
-            <span className="font-semibold">NONO</span>
+            <span className="font-semibold">nono</span>
           </div>
 
           <div className="flex items-center gap-6 text-sm text-muted">

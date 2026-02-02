@@ -13,18 +13,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NONO - Secure Shell for AI Agents",
+  title: "nono - Secure Shell for AI Agents",
   description:
     "OS-enforced capability sandbox for running untrusted AI agents. No escape hatch. Works with Claude, GPT, and any AI agent.",
   openGraph: {
-    title: "NONO - Secure Shell for AI Agents",
+    title: "nono - Secure Shell for AI Agents",
     description:
       "OS-enforced capability sandbox for running untrusted AI agents. No escape hatch. Works with Claude, GPT, and any AI agent.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "NONO - Secure Shell for AI Agents",
+    title: "nono - Secure Shell for AI Agents",
     description:
       "OS-enforced capability sandbox for running untrusted AI agents. No escape hatch. Works with Claude, GPT, and any AI agent.",
   },

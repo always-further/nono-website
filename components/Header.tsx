@@ -6,7 +6,7 @@ import { Menu, X } from "lucide-react";
 
 const navLinks = [
   { href: "#features", label: "Features" },
-  { href: "#quick-start", label: "Quick Start" },
+  { href: "#quick-start", label: "Install" },
   { href: "https://docs.nono.sh", label: "Docs", external: true },
   { href: "https://github.com/lukehinds/nono", label: "GitHub", external: true },
   { href: "https://discord.gg/pPcjYzGvbS", label: "Discord", external: true },
@@ -21,12 +21,15 @@ export default function Header() {
         <a href="#" className="flex items-center gap-3">
           <Image
             src="/nono-mascot.png"
-            alt="NONO"
+            alt="nono"
             width={40}
             height={40}
             className="rounded-lg"
           />
-          <span className="font-semibold text-lg">NONO</span>
+          <div className="flex flex-col">
+            <span className="font-semibold text-lg">nono</span>
+            <span className="text-xs text-muted hidden sm:block">Brought to you by the creator of Sigstore</span>
+          </div>
         </a>
 
         {/* Desktop nav */}

@@ -8,14 +8,14 @@ export default function HowItWorks() {
           How it works
         </h2>
         <p className="text-muted text-center mb-12 max-w-2xl mx-auto">
-          NONO follows a capability-based security model. You grant explicit
+          nono follows a capability-based security model. You grant explicit
           capabilities, and the OS enforces them at the kernel level.
         </p>
 
         <div className="rounded-xl overflow-hidden mb-12 max-w-3xl mx-auto">
           <Image
             src="/arch.png"
-            alt="NONO architecture diagram"
+            alt="nono architecture diagram"
             width={1200}
             height={800}
             className="w-full h-auto"

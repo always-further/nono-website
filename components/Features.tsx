@@ -36,7 +36,7 @@ export default function Features() {
         </h2>
         <p className="text-muted text-center mb-16 max-w-2xl mx-auto">
           Unlike policy-based sandboxes that intercept and filter operations,
-          NONO leverages OS security primitives to create an environment where
+          nono leverages OS security primitives to create an environment where
           unauthorized operations are structurally impossible.
         </p>
 
