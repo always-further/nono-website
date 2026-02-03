@@ -11,7 +11,7 @@ const features = [
     icon: Bot,
     title: "Agent Agnostic",
     description:
-      "Works with Claude, GPT, opencode, openclaw, or any AI agent. Actually, it works with any process you want to sandbox.",
+      "Works with any AI agent. Actually, more than that. It works with any process you want to sandbox.",
   },
   {
     icon: Cpu,
