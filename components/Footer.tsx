@@ -42,7 +42,10 @@ export default function Footer() {
 
         {/* Links and branding */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-8 border-t border-border">
-          <span className="font-semibold">nono</span>
+          <div>
+            <span className="font-semibold">nono</span>
+            <span className="text-sm text-muted ml-2">by Always Further, Inc</span>
+          </div>
 
           <div className="flex items-center gap-4 text-muted">
             <a
