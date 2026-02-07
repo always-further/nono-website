@@ -1,10 +1,16 @@
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
+import Testimonials from "@/components/Testimonials";
+import { type Testimonial } from "@/types/testimonial";
 
-export default function Hero() {
+type HeroProps = {
+  testimonials: Testimonial[];
+};
+
+export default function Hero({ testimonials }: HeroProps) {
   return (
     <section className="min-h-screen flex items-center justify-center px-6">
-      <div className="max-w-5xl mx-auto text-center">
+      <div className="max-w-5xl mx-auto text-center w-full">
         <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-4">
           nono: OS-Level <br />
           Isolation for AI Agents.
@@ -45,6 +51,8 @@ export default function Hero() {
             Sigstore
           </a>
         </div>
+
+        <Testimonials testimonials={testimonials} embedded />
       </div>
     </section>
   );

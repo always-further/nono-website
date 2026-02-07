@@ -7,13 +7,17 @@ import HowItWorks from "@/components/HowItWorks";
 import QuickStart from "@/components/QuickStart";
 import Platforms from "@/components/Platforms";
 import Footer from "@/components/Footer";
+import testimonials from "@/data/testimonials.json";
+import { type Testimonial } from "@/types/testimonial";
 
 export default function Home() {
+  const testimonialItems = testimonials as Testimonial[];
+
   return (
     <>
       <Header />
       <main>
-        <Hero />
+        <Hero testimonials={testimonialItems} />
         <OpenClawCTA />
         <TerminalDemo />
         <Features />
