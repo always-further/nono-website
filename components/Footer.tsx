@@ -59,7 +59,7 @@ export default function Footer() {
               <BookOpen size={18} />
             </a>
             <a
-              href="https://github.com/lukehinds/nono"
+              href="https://github.com/always-further/nono"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-foreground transition-colors"
@@ -79,7 +79,7 @@ export default function Footer() {
               <DiscordIcon size={18} />
             </a>
             <a
-              href="https://github.com/lukehinds/nono/blob/main/LICENSE"
+              href="https://github.com/always-further/nono/blob/main/LICENSE"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-foreground transition-colors"

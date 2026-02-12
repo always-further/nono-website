@@ -30,7 +30,7 @@ export default function Hero({ testimonials }: HeroProps) {
             <ArrowRight size={18} />
           </a>
           <a
-            href="https://github.com/lukehinds/nono"
+            href="https://github.com/always-further/nono"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-2 border border-border hover:border-muted px-6 py-3 rounded-lg font-medium transition-colors"

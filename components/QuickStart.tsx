@@ -6,7 +6,7 @@ import { Check, Copy } from "lucide-react";
 const codeExamples = [
   {
     label: "macOS (Homebrew)",
-    code: `brew tap lukehinds/nono
+    code: `brew tap always-further/nono
 brew install nono`,
   },
   {

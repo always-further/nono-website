@@ -20,7 +20,7 @@ const navLinks = [
   { href: "#features", label: "Features", icon: Sparkles },
   { href: "#quick-start", label: "Install", icon: Download },
   { href: "https://docs.nono.sh", label: "Docs", icon: BookOpen, external: true },
-  { href: "https://github.com/lukehinds/nono", label: "GitHub", icon: Github, external: true },
+  { href: "https://github.com/always-further/nono", label: "GitHub", icon: Github, external: true },
   { href: "https://discord.gg/pPcjYzGvbS", label: "Discord", icon: "discord", external: true },
 ];
 
