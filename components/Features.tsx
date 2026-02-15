@@ -3,13 +3,13 @@ import { ShieldOff, Code, Cpu, Monitor } from "lucide-react";
 const features = [
   {
     icon: ShieldOff,
-    title: "No Escape Hatch",
+    title: "Destruction-proof",
     description:
-      "Once inside nono, there is no mechanism to bypass restrictions. The agent cannot request more permissions because the mechanism doesn't exist.",
+      "Damagaging commands are blocked. No more accidental rm -rf ~/, no more reboot trolling.",
   },
   {
     icon: Code,
-    title: "Library-First",
+    title: "Native SDKs",
     badge: "Coming soon",
     description:
       "A Rust library at its core, with native SDKs for Python, TypeScript, and any language with C FFI. Embed sandboxing directly in your agent code.",
