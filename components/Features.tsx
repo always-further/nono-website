@@ -5,7 +5,7 @@ const features = [
     icon: ShieldOff,
     title: "Destruction-proof",
     description:
-      "Damagaging commands are blocked. No more accidental rm -rf ~/, no more reboot trolling.",
+      "Destructive commands are blocked. No more accidental rm -rf ~/, no more reboot trolling. No more rogue agents wreaking havoc on your system.",
   },
   {
     icon: Code,
@@ -22,9 +22,9 @@ const features = [
   },
   {
     icon: Monitor,
-    title: "Cross-Platform",
+    title: "Keys and credentials protected",
     description:
-      "Linux support via Landlock and macOS support via Seatbelt. Native OS security primitives for maximum reliability.",
+      "Keys and secrets stored within hardware-backed keychains remain protected and zeroised on termination.",
   },
 ];
 
