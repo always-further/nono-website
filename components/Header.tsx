@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, X, Github, BookOpen, Sparkles, Download } from "lucide-react";
+import { Menu, X, Github } from "lucide-react";
 
-// Discord icon (not in lucide-react)
 const DiscordIcon = ({ size = 20 }: { size?: number }) => (
   <svg
     width={size}
@@ -16,12 +15,36 @@ const DiscordIcon = ({ size = 20 }: { size?: number }) => (
   </svg>
 );
 
-const navLinks = [
-  { href: "#features", label: "Features", icon: Sparkles },
-  { href: "#quick-start", label: "Install", icon: Download },
-  { href: "https://docs.nono.sh", label: "Docs", icon: BookOpen, external: true },
-  { href: "https://github.com/always-further/nono", label: "GitHub", icon: Github, external: true },
-  { href: "https://discord.gg/pPcjYzGvbS", label: "Discord", icon: "discord", external: true },
+type NavLink = {
+  href: string;
+  label: string;
+  external?: boolean;
+  iconOnly?: boolean;
+  icon?: typeof Github | "discord";
+};
+
+const navLinks: NavLink[] = [
+  { href: "#features", label: "Features" },
+  { href: "#quick-start", label: "Install" },
+  {
+    href: "https://docs.nono.sh",
+    label: "Docs",
+    external: true,
+  },
+  {
+    href: "https://github.com/always-further/nono",
+    label: "GitHub",
+    icon: Github,
+    iconOnly: true,
+    external: true,
+  },
+  {
+    href: "https://discord.gg/pPcjYzGvbS",
+    label: "Discord",
+    icon: "discord",
+    iconOnly: true,
+    external: true,
+  },
 ];
 
 export default function Header() {
@@ -29,27 +52,31 @@ export default function Header() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-border">
-      <nav className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+      <nav className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
         <a href="#" className="font-semibold text-lg">
           nono
         </a>
 
         {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden md:flex items-center gap-6">
           {navLinks.map((link) => (
             <a
               key={link.href}
               href={link.href}
               target={link.external ? "_blank" : undefined}
               rel={link.external ? "noopener noreferrer" : undefined}
-              className="text-muted hover:text-foreground transition-colors"
+              className="text-sm text-muted hover:text-foreground transition-colors"
               aria-label={link.label}
               title={link.label}
             >
-              {link.icon === "discord" ? (
-                <DiscordIcon size={20} />
+              {link.iconOnly ? (
+                link.icon === "discord" ? (
+                  <DiscordIcon size={18} />
+                ) : link.icon ? (
+                  <link.icon size={18} />
+                ) : null
               ) : (
-                <link.icon size={20} />
+                link.label
               )}
             </a>
           ))}
@@ -80,9 +107,9 @@ export default function Header() {
               >
                 {link.icon === "discord" ? (
                   <DiscordIcon size={20} />
-                ) : (
+                ) : link.icon ? (
                   <link.icon size={20} />
-                )}
+                ) : null}
                 <span>{link.label}</span>
               </a>
             ))}

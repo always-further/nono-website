@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy } from "lucide-react";
+import { Check, Copy, Apple, Monitor } from "lucide-react";
 
 const codeExamples = [
   {
@@ -29,12 +29,12 @@ export default function QuickStart() {
   };
 
   return (
-    <section id="quick-start" className="py-24 px-6 bg-black">
+    <section id="quick-start" className="py-24 px-6">
       <div className="max-w-5xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
-          Install
+        <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 tracking-tight">
+          Get started
         </h2>
-        <p className="text-muted text-center mb-12 max-w-2xl mx-auto">
+        <p className="text-muted text-center mb-12 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
           Get up and running in seconds.
         </p>
 
@@ -45,10 +45,10 @@ export default function QuickStart() {
               <button
                 key={example.label}
                 onClick={() => setActiveTab(index)}
-                className={`px-6 py-3 text-sm font-medium transition-colors ${
+                className={`px-5 py-3 text-sm font-medium transition-colors border-b-2 ${
                   activeTab === index
-                    ? "text-white bg-gray-800"
-                    : "text-gray-400 hover:text-gray-200"
+                    ? "text-white border-accent"
+                    : "text-gray-400 hover:text-gray-200 border-transparent"
                 }`}
               >
                 {example.label}
@@ -73,7 +73,20 @@ export default function QuickStart() {
           </div>
         </div>
 
-        <p className="text-muted text-center mt-8 text-sm">
+        {/* Platform badges */}
+        <div className="mt-8 flex items-center justify-center gap-6">
+          <div className="flex items-center gap-2 text-sm text-muted">
+            <Apple className="w-4 h-4" />
+            <span>macOS via Seatbelt</span>
+          </div>
+          <div className="w-px h-4 bg-border" />
+          <div className="flex items-center gap-2 text-sm text-muted">
+            <Monitor className="w-4 h-4" />
+            <span>Linux via Landlock</span>
+          </div>
+        </div>
+
+        <p className="text-muted text-center mt-4 text-sm">
           Building from source requires Rust toolchain. See{" "}
           <a
             href="https://docs.nono.sh"
