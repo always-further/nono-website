@@ -1,24 +1,30 @@
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
-import Testimonials from "@/components/Testimonials";
-import { type Testimonial } from "@/types/testimonial";
 
-type HeroProps = {
-  testimonials: Testimonial[];
-};
-
-export default function Hero({ testimonials }: HeroProps) {
+export default function Hero() {
   return (
-    <section className="min-h-screen flex items-center justify-center px-6">
-      <div className="max-w-5xl mx-auto text-center w-full">
-        <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-4">
-          nono: OS-Level <br />
-          Isolation for AI Agents.
-        </h1>
+    <section className="pt-32 pb-16 px-6 relative">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(239,68,68,0.04)_0%,_transparent_70%)] pointer-events-none" />
+      <div className="relative max-w-5xl mx-auto text-center">
 
-        <p className="text-lg text-muted max-w-2xl mx-auto mb-10">
-          OS-enforced sandboxing for untrusted AI agents and processes.
-          <br />
+        <a
+          href="https://alwaysfurther.ai?utm_source=nono-sh"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-3 mb-10 opacity-70 hover:opacity-100 transition-opacity"
+        >
+          <Image src="/af-logo.svg" alt="Always Further" width={160} height={33} />
+        </a>
+
+        <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-6">
+          nono<br />
+        </h1>
+        <h2 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4">
+          agents run free but not amok
+        </h2>
+
+        <p className="text-lg md:text-xl text-muted max-w-2xl mx-auto mb-10">
+          Kernel-enforced process isolation for AI agents. <br />
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -39,20 +45,28 @@ export default function Hero({ testimonials }: HeroProps) {
           </a>
         </div>
 
-        <div className="mt-8 inline-flex items-center gap-3 px-4 py-2 rounded-full border border-border/50 bg-white/5">
-          <span className="text-sm text-muted">Brought to you by the creator of</span>
-          <a
-            href="https://sigstore.dev"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm font-medium hover:text-accent transition-colors"
-          >
-            <Image src="/sigstore.svg" alt="Sigstore" width={28} height={28} />
-            Sigstore
-          </a>
+        <div className="mt-10 flex flex-col items-center gap-1 text-sm text-muted">
+          <div className="flex items-center gap-2">
+            <span>From the creator of</span>
+            <a
+              href="https://sigstore.dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 font-medium text-foreground hover:text-accent transition-colors"
+            >
+              <Image
+                src="/sigstore.svg"
+                alt="Sigstore"
+                width={20}
+                height={20}
+              />
+              Sigstore
+            </a>
+          </div>
+          <span className="text-xs text-muted/70">
+            The industry standard for software signing, used by PyPi, Homebrew, Maven and Google, GitHub, NVIDIA
+          </span>
         </div>
-
-        <Testimonials testimonials={testimonials} embedded />
       </div>
     </section>
   );
