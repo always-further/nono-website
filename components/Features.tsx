@@ -1,8 +1,8 @@
-import { ShieldOff, Code, Cpu, Monitor } from "lucide-react";
+import { ShieldBan, Code, Cpu, KeyRound } from "lucide-react";
 
 const features = [
   {
-    icon: ShieldOff,
+    icon: ShieldBan,
     title: "Destruction-proof",
     description:
       "Destructive commands are blocked. No more accidental rm -rf ~/, no more reboot trolling. No more rogue agents wreaking havoc on your system.",
@@ -21,7 +21,7 @@ const features = [
       "Kernel denies unauthorized operations directly. No interception, no filtering - operations are structurally impossible.",
   },
   {
-    icon: Monitor,
+    icon: KeyRound,
     title: "Keys and credentials protected",
     description:
       "Keys and secrets stored within hardware-backed keychains remain protected and zeroised on termination.",
