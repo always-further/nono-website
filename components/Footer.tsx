@@ -42,6 +42,15 @@ export default function Footer() {
             >
               <Image src="/af-logo.svg" alt="Always Further" width={130} height={27} />
             </a>
+            <span className="text-border">|</span>
+            <a
+              href="https://alwaysfurther.ai/blog?utm_source=nono-sh"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-muted hover:text-foreground transition-colors"
+            >
+              Learn about AI agent security
+            </a>
           </div>
 
           <div className="flex items-center gap-4 text-muted">
