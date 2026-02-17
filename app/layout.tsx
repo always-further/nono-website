@@ -95,13 +95,13 @@ export default function RootLayout({
                 person_profiles: 'identified_only',
             });
 
-            // Clean up UTM parameters from URL after analytics capture
+            // Clean up tracking parameters from URL after analytics capture
             (function() {
               var url = new URL(window.location.href);
-              var utmParams = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'utm_id'];
-              var hasUtm = utmParams.some(function(p) { return url.searchParams.has(p); });
-              if (hasUtm) {
-                utmParams.forEach(function(p) { url.searchParams.delete(p); });
+              var trackingParams = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'utm_id', '_gl'];
+              var hasTracking = trackingParams.some(function(p) { return url.searchParams.has(p); });
+              if (hasTracking) {
+                trackingParams.forEach(function(p) { url.searchParams.delete(p); });
                 window.history.replaceState({}, '', url.pathname + url.search + url.hash);
               }
             })();
