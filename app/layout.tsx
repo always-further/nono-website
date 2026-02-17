@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import WebSiteSchema from "@/components/structured-data/WebSiteSchema";
+import SoftwareApplicationSchema from "@/components/structured-data/SoftwareApplicationSchema";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,11 +20,27 @@ export const metadata: Metadata = {
   title: "nono - Secure Shell for AI Agents",
   description:
     "OS-enforced capability sandbox for running untrusted AI agents. No escape hatch. Works with any AI agent.",
+  keywords: [
+    "AI agent sandbox",
+    "AI agent security",
+    "OS-level isolation",
+    "nono sandbox",
+    "Claude Code sandbox",
+    "AI coding agent security",
+    "kernel sandboxing",
+    "Seatbelt sandbox",
+    "Landlock sandbox",
+    "secure AI agents",
+  ],
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
     title: "nono - Secure Shell for AI Agents",
     description:
       "OS-enforced capability sandbox for running untrusted AI agents. No escape hatch. Works with any AI agent.",
     type: "website",
+    locale: "en_US",
     images: [
       {
         url: "/logo.png",
@@ -48,6 +66,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <WebSiteSchema />
+        <SoftwareApplicationSchema />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
@@ -73,13 +95,13 @@ export default function RootLayout({
                 person_profiles: 'identified_only',
             });
 
-            // Clean up UTM parameters from URL after analytics capture
+            // Clean up tracking parameters from URL after analytics capture
             (function() {
               var url = new URL(window.location.href);
-              var utmParams = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'utm_id'];
-              var hasUtm = utmParams.some(function(p) { return url.searchParams.has(p); });
-              if (hasUtm) {
-                utmParams.forEach(function(p) { url.searchParams.delete(p); });
+              var trackingParams = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'utm_id', '_gl'];
+              var hasTracking = trackingParams.some(function(p) { return url.searchParams.has(p); });
+              if (hasTracking) {
+                trackingParams.forEach(function(p) { url.searchParams.delete(p); });
                 window.history.replaceState({}, '', url.pathname + url.search + url.hash);
               }
             })();
