@@ -20,7 +20,7 @@ export default function Hero() {
           nono<br />
         </h1>
         <h2 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4">
-          agents run free but not amok
+          Constrain. Control. Correct.
         </h2>
 
         <p className="text-lg md:text-xl text-muted max-w-2xl mx-auto mb-10">
