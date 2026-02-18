@@ -20,11 +20,11 @@ export default function Hero() {
           nono<br />
         </h1>
         <h2 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4">
-          Constrain. Control. Correct.
+          Contain. Control. Correct.
         </h2>
 
         <p className="text-lg md:text-xl text-muted max-w-2xl mx-auto mb-10">
-          Kernel-enforced isolation, immutable auditing, and atomic rollbacks - delivered via the nono CLI and native SDKs.<br />
+          Kernel-enforced isolation, immutable auditing, and atomic rollbacks for AI agents - built into the nono CLI and native SDKs.<br />
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
