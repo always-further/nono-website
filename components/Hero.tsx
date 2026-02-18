@@ -17,7 +17,7 @@ export default function Hero() {
         </a>
 
         <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-6">
-          nono<br />
+          nono<span className="text-accent">&gt;_</span>
         </h1>
         <h2 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4">
           Contain. Control. Correct.
