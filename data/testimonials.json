@@ -12,6 +12,12 @@
     "avatar": "/testimonials/clint-gibler.jpeg"
   },
   {
+    "quote": "I integrated nono into my project this weekend and it was a breeze to work with!",
+    "name": "Terra Tauri",
+    "role": "Senior Engineer II, Bit Complete",
+    "avatar": "/testimonials/terra-tauri.jpeg"
+  },
+  {
     "quote": "nono hits the real problem: agents shouldn’t inherit full user trust by default. Treating them like untrusted processes, with deny-by-default filesystem, network, and secrets access, feels like the right baseline going forward.",
     "name": "snapsec",
     "role": "Centralising Application Security",
