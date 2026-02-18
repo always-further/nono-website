@@ -24,7 +24,7 @@ export default function Hero() {
         </h2>
 
         <p className="text-lg md:text-xl text-muted max-w-2xl mx-auto mb-10">
-          Kernel-enforced process isolation for AI agents. <br />
+          Kernel-enforced isolation, immutable auditing, and atomic rollbacks - delivered via the nono CLI and native SDKs.<br />
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
