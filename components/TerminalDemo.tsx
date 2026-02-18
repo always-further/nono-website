@@ -4,23 +4,39 @@ import { useEffect, useState, useCallback, useRef } from "react";
 
 const examples = [
   {
-    command: "nono run agentprocess",
+    command: "nono run --profile myagent -- ./agent serve",
     output: [
       "Sandbox active. Restrictions are now in effect",
-      "Accessing credentials for deployment...",
+      "Profile: myagent (python runtime, deny_credentials)",
       "cat: ~/.aws/credentials: Operation not permitted",
       "cat: ~/.ssh/id_rsa: Operation not permitted",
     ],
   },
   {
-    command: "nono run --allow /project myagent",
+    command: "nono run --secrets openai_api_key -- ./agent serve",
     output: [
+      "Injecting 1 secret(s) from keystore",
       "Sandbox active. Restrictions are now in effect",
-      "Reading project files...",
-      "Reading file: /project/index.js",
-      "Reading file: /project/utils.js",
-      "Clearing disk space...",
-      "rm -rf ~/: Operation not permitted",
+      "OPENAI_API_KEY loaded into environment",
+      "~/Library/Keychains: Operation not permitted",
+    ],
+  },
+  {
+    command: "nono undo show 20260218-141032 --diff",
+    output: [
+      "Session: 20260218-141032  pid:48291  12 files",
+      "Merkle root: a3f8c1...e7d204",
+      "+++ src/api/handler.py   (modified)",
+      "--- config/settings.yml  (deleted)",
+    ],
+  },
+  {
+    command: "nono audit show 20260218-141032",
+    output: [
+      "Merkle root: a3f8c1...e7d204 (verified)",
+      "mkdir -p /project/build         allowed",
+      "curl https://registry.npmjs.org  allowed",
+      "rm -rf ~/Documents              denied",
     ],
   },
 ];
@@ -107,10 +123,15 @@ export default function TerminalDemo() {
                 key={i}
                 className={`mt-2 ${
                   i < visibleLines && currentExample.output[i]
-                    ? currentExample.output[i].includes("Sandbox")
+                    ? currentExample.output[i].includes("Sandbox") ||
+                        currentExample.output[i].includes("Injecting") ||
+                        currentExample.output[i].includes("loaded into") ||
+                        currentExample.output[i].includes("verified") ||
+                        currentExample.output[i].includes("+++")
                       ? "text-green-400"
                       : currentExample.output[i].includes("not permitted") ||
-                          currentExample.output[i].includes("denied")
+                          currentExample.output[i].includes("denied") ||
+                          currentExample.output[i].includes("---")
                         ? "text-red-400"
                         : "text-muted"
                     : "invisible"

@@ -1,30 +1,29 @@
-import { ShieldBan, Code, Cpu, KeyRound } from "lucide-react";
+import { Users, KeyRound, Undo2, ScrollText } from "lucide-react";
 
 const features = [
   {
-    icon: ShieldBan,
-    title: "Destruction-proof",
+    icon: Users,
+    title: "Profiles and Groups",
     description:
-      "Destructive commands are blocked. No more accidental rm -rf ~/, no more reboot trolling. No more rogue agents wreaking havoc on your system.",
-  },
-  {
-    icon: Code,
-    title: "Native SDKs",
-    badge: "Coming soon",
-    description:
-      "A Rust library at its core, with native SDKs for Python, TypeScript, and any language with C FFI. Embed sandboxing directly in your agent code.",
-  },
-  {
-    icon: Cpu,
-    title: "OS-Level Enforcement",
-    description:
-      "Kernel denies unauthorized operations directly. No interception, no filtering - operations are structurally impossible.",
+      "Composable JSON profiles define exactly what an agent can access. 22 built-in groups cover runtimes, credential deny-lists, and dangerous commands.",
   },
   {
     icon: KeyRound,
-    title: "Keys and credentials protected",
+    title: "Secrets Injection",
     description:
-      "Keys and secrets stored within hardware-backed keychains remain protected and zeroised on termination.",
+      "Secrets load from the system keystore before sandboxing, then get injected as environment variables. Direct keystore access is blocked. Zeroised on exit.",
+  },
+  {
+    icon: Undo2,
+    title: "Atomic Rollbacks",
+    description:
+      "SHA-256 content-addressed snapshots capture filesystem state before and after execution. Restore any session with a single command.",
+  },
+  {
+    icon: ScrollText,
+    title: "Provenance and Audit",
+    description:
+      "Every operation is recorded with a Merkle tree rooted in SHA-256 hashes. Cryptographically verify that no file was altered outside the sandbox.",
   },
 ];
 
@@ -53,13 +52,8 @@ export default function Features() {
                 className="w-5 h-5 text-muted mb-5"
                 strokeWidth={1.5}
               />
-              <h3 className="text-lg font-semibold mb-2 tracking-tight flex items-center gap-2">
+              <h3 className="text-lg font-semibold mb-2 tracking-tight">
                 {feature.title}
-                {"badge" in feature && feature.badge && (
-                  <span className="text-[0.65rem] font-medium uppercase tracking-widest text-accent">
-                    {feature.badge}
-                  </span>
-                )}
               </h3>
               <p className="text-sm text-muted leading-relaxed">
                 {feature.description}
