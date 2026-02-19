@@ -35,7 +35,7 @@ export default function Features() {
           Security without compromise
         </h2>
         <p className="text-muted text-center mb-12 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
-          Unlike policy-based sandboxes that intercept and filter operations,
+          Unlike policy-based approaches that intercept and filter operations after they occur,
           nono leverages OS security primitives to create an environment where
           unauthorized operations are structurally impossible.
         </p>
