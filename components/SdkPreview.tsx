@@ -86,7 +86,7 @@ export default function SdkPreview() {
           Orchestrate Secure Environments
         </h2>
         <p className="text-muted text-center max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
-          Programmable Guardrails for AI Agents - enforce kernel-level isolation, immutable audit trails, and atomic rollbacks with nono's native SDKs for Python, TypeScript, and Rust.
+          Programmable Guardrails for AI Agents - enforce kernel-level isolation, immutable audit trails, and atomic rollbacks with nono&apos;s native SDKs for Python, TypeScript, and Rust.
         </p>
         <span className="inline-block text-xs font-medium uppercase tracking-widest text-accent mt-3 mb-16">
           Coming soon
