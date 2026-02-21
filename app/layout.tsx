@@ -17,9 +17,9 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://nono.sh"),
-  title: "nono - Secure Shell for AI Agents",
+  title: "nono - Next-Generation Agent Security",
   description:
-    "OS-enforced capability sandbox for running untrusted AI agents. No escape hatch. Works with any AI agent.",
+    "Kernel-enforced isolation, immutable auditing, and atomic rollbacks for AI agents - built into the nono CLI and native SDKs.",
   keywords: [
     "AI agent sandbox",
     "AI agent security",
@@ -36,9 +36,9 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: "nono - Secure Shell for AI Agents",
+    title: "nono - Next-Generation Agent Security",
     description:
-      "OS-enforced capability sandbox for running untrusted AI agents. No escape hatch. Works with any AI agent.",
+      "Kernel-enforced isolation, immutable auditing, and atomic rollbacks for AI agents - built into the nono CLI and native SDKs.",
     type: "website",
     locale: "en_US",
     images: [
@@ -52,9 +52,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "nono - Secure Shell for AI Agents",
+    title: "nono - Next-Generation Agent Security",
     description:
-      "OS-enforced capability sandbox for running untrusted AI agents. No escape hatch. Works with any AI agent.",
+      "Kernel-enforced isolation, immutable auditing, and atomic rollbacks for AI agents - built into the nono CLI and native SDKs.",
     images: ["/logo.png"],
   },
 };
