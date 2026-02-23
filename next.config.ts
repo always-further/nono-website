@@ -32,7 +32,7 @@ const securityHeaders = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://eu.i.posthog.com https://eu-assets.i.posthog.com",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: https://www.google-analytics.com https://www.googletagmanager.com",
+      "img-src 'self' data: https://www.google-analytics.com https://www.googletagmanager.com https://mintcdn.com",
       "font-src 'self'",
       "connect-src 'self' https://www.google-analytics.com https://eu.i.posthog.com https://eu-assets.i.posthog.com",
       "frame-ancestors 'none'",
@@ -57,6 +57,18 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/docs",
+        has: docsHostMatch,
+        destination: "https://nono.sh/docs",
+        permanent: true,
+      },
+      {
+        source: "/docs/:path*",
+        has: docsHostMatch,
+        destination: "https://nono.sh/docs/:path*",
+        permanent: true,
+      },
+      {
         source: "/",
         has: docsHostMatch,
         destination: "https://nono.sh/docs",
@@ -74,14 +86,18 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/docs",
-        destination: "https://alwaysfurther.mintlify.app/docs",
+        destination: "https://alwaysfurther.mintlify.app",
       },
       {
         source: "/docs/:match*",
-        destination: "https://alwaysfurther.mintlify.app/docs/:match*",
+        destination: "https://alwaysfurther.mintlify.app/:match*",
+      },
+      {
+        source: "/mintlify-assets/:match*",
+        destination: "https://alwaysfurther.mintlify.app/mintlify-assets/:match*",
       },
     ];
-  },
+  }
 };
 
 export default nextConfig;
