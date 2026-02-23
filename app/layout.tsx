@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import OrganizationSchema from "@/components/structured-data/OrganizationSchema";
 import WebSiteSchema from "@/components/structured-data/WebSiteSchema";
 import SoftwareApplicationSchema from "@/components/structured-data/SoftwareApplicationSchema";
 
@@ -17,7 +18,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://nono.sh"),
-  title: "nono - Secure Shell for AI Agents",
+  title: "Secure Shell for AI Agents | nono",
   description:
     "OS-enforced capability sandbox for running untrusted AI agents. No escape hatch. Works with any AI agent.",
   keywords: [
@@ -36,7 +37,7 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: "nono - Secure Shell for AI Agents",
+    title: "Secure Shell for AI Agents | nono",
     description:
       "OS-enforced capability sandbox for running untrusted AI agents. No escape hatch. Works with any AI agent.",
     type: "website",
@@ -52,7 +53,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "nono - Secure Shell for AI Agents",
+    site: "@alwaysfurtherAI",
+    title: "Secure Shell for AI Agents | nono",
     description:
       "OS-enforced capability sandbox for running untrusted AI agents. No escape hatch. Works with any AI agent.",
     images: ["/logo.png"],
@@ -67,6 +69,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <OrganizationSchema />
         <WebSiteSchema />
         <SoftwareApplicationSchema />
       </head>
