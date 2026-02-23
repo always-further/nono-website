@@ -43,12 +43,42 @@ const securityHeaders = [
   },
 ];
 
+const docsHostMatch = [{ type: "host" as const, value: "docs.nono.sh" }];
+
 const nextConfig: NextConfig = {
   async headers() {
     return [
       {
         source: "/:path*",
         headers: securityHeaders,
+      },
+    ];
+  },
+  async redirects() {
+    return [
+      {
+        source: "/",
+        has: docsHostMatch,
+        destination: "https://nono.sh/docs",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: docsHostMatch,
+        destination: "https://nono.sh/docs/:path*",
+        permanent: true,
+      },
+    ];
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/docs",
+        destination: "https://alwaysfurther.mintlify.app/docs",
+      },
+      {
+        source: "/docs/:match*",
+        destination: "https://alwaysfurther.mintlify.app/docs/:match*",
       },
     ];
   },

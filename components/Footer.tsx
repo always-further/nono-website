@@ -55,9 +55,7 @@ export default function Footer() {
 
           <div className="flex items-center gap-4 text-muted">
             <a
-              href="https://docs.nono.sh"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/docs"
               className="hover:text-foreground transition-colors"
               aria-label="Docs"
               title="Docs"

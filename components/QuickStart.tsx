@@ -89,9 +89,7 @@ export default function QuickStart() {
         <p className="text-muted text-center mt-4 text-sm">
           Building from source requires Rust toolchain. See{" "}
           <a
-            href="https://docs.nono.sh"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/docs"
             className="text-accent hover:underline"
           >
             the docs

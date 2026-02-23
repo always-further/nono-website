@@ -27,9 +27,8 @@ const navLinks: NavLink[] = [
   { href: "#features", label: "Features" },
   { href: "#quick-start", label: "Install" },
   {
-    href: "https://docs.nono.sh",
+    href: "/docs",
     label: "Docs",
-    external: true,
   },
   {
     href: "https://github.com/always-further/nono",
