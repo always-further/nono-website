@@ -1,17 +1,46 @@
-import { Users, KeyRound, Undo2, ScrollText } from "lucide-react";
+import {
+  Lock,
+  Shield,
+  KeyRound,
+  ScrollText,
+  Layers,
+  Undo2,
+  FileCheck,
+  Fingerprint,
+  Box,
+  FileJson,
+} from "lucide-react";
 
 const features = [
   {
-    icon: Users,
-    title: "Profiles and Groups",
+    icon: Lock,
+    title: "Isolation Sandbox",
     description:
-      "Composable JSON profiles define exactly what an agent can access. 22 built-in groups cover runtimes, credential deny-lists, and dangerous commands.",
+      "Landlock on Linux and Seatbelt on macOS create an irrevocable allow-list at the kernel level. Host-level network filtering with CIDR deny ranges blocks SSRF and data exfiltration.",
+  },
+  {
+    icon: Shield,
+    title: "Supervisor and Capability Expansion",
+    description:
+      "Runtime approval prompts via Unix socket IPC. On Linux, seccomp-notify enables transparent fd-passing so agents access new files without retry logic.",
   },
   {
     icon: KeyRound,
     title: "Secrets Injection",
     description:
-      "Secrets load from the system keystore before sandboxing, then get injected as environment variables. Direct keystore access is blocked. Zeroised on exit.",
+      "Secrets load from the system keystore and get injected as environment variables or via the network proxy. Agents never touch raw API tokens or credentials. Zeroised on exit.",
+  },
+  {
+    icon: ScrollText,
+    title: "Provenance and Audit",
+    description:
+      "Every operation is recorded with a Merkle tree rooted in SHA-256 hashes. Full session audit trail with date and command filtering, plus JSON export.",
+  },
+  {
+    icon: Layers,
+    title: "Composable Policy",
+    description:
+      "Composable JSON profiles define exactly what an agent can access. 22 built-in groups cover runtimes, credential deny-lists, and dangerous commands.",
   },
   {
     icon: Undo2,
@@ -20,10 +49,28 @@ const features = [
       "SHA-256 content-addressed snapshots capture filesystem state before and after execution. Restore any session with a single command.",
   },
   {
-    icon: ScrollText,
-    title: "Provenance and Audit",
+    icon: FileCheck,
+    title: "Instruction File Trust",
     description:
-      "Every operation is recorded with a Merkle tree rooted in SHA-256 hashes. Cryptographically verify that no file was altered outside the sandbox.",
+      "Sigstore-based signing and verification of SKILLS.md, CLAUDE.md, and AGENT.MD files. Unsigned instruction files are blocked at the kernel level.",
+  },
+  {
+    icon: Fingerprint,
+    title: "Cryptographic Audit Trail",
+    description:
+      "Merkle tree commitments over every filesystem snapshot. Cryptographically verify that no file was altered outside the sandbox. Tamper-evident by construction.",
+  },
+  {
+    icon: Box,
+    title: "Runs Anywhere",
+    description:
+      "No root required. Runs on laptops, embedded devices, containers (Docker, Podman, Kubernetes), and microvms (Kata, Firecracker). Unprivileged userspace sandboxing.",
+  },
+  {
+    icon: FileJson,
+    title: "Config-Driven",
+    description:
+      "Everything is declarative JSON config. Profiles, groups, network policy, and trust policy are all version-controlled alongside your code. Persist agent security state in your repo.",
   },
 ];
 
@@ -45,7 +92,7 @@ export default function Features() {
             <div
               key={feature.title}
               className={`p-8 md:p-10 hover:bg-white/[0.02] transition-colors ${
-                index < 2 ? "border-b border-border" : ""
+                index < features.length - 2 ? "border-b border-border" : ""
               } ${index % 2 === 0 ? "md:border-r md:border-border" : ""}`}
             >
               <feature.icon
