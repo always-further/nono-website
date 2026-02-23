@@ -84,12 +84,16 @@ const nextConfig: NextConfig = {
         source:
           "/:path((?!docs(?:/|$)|mintlify-assets(?:/|$)|_next(?:/|$)|api(?:/|$)|favicon\\.ico$|robots\\.txt$|sitemap\\.xml$).+)",
         destination: "/docs/:path",
-        permanent: false,
+        permanent: true,
       },
     ];
   },
   async rewrites() {
     return [
+      {
+        source: "/docs/sitemap.xml",
+        destination: "https://alwaysfurther.mintlify.dev/docs/sitemap.xml",
+      },
       {
         source: "/docs",
         destination: "https://alwaysfurther.mintlify.dev/docs",

@@ -6,6 +6,9 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: '*',
       allow: '/',
     },
-    sitemap: 'https://nono.sh/sitemap.xml',
+    sitemap: [
+      'https://nono.sh/sitemap.xml',
+      'https://nono.sh/docs/sitemap.xml',
+    ],
   };
 }
