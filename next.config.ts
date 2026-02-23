@@ -32,9 +32,52 @@ const securityHeaders = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://eu.i.posthog.com https://eu-assets.i.posthog.com",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: https://www.google-analytics.com https://www.googletagmanager.com https://mintcdn.com",
+      "img-src 'self' data: https://www.google-analytics.com https://www.googletagmanager.com",
       "font-src 'self'",
       "connect-src 'self' https://www.google-analytics.com https://eu.i.posthog.com https://eu-assets.i.posthog.com",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "upgrade-insecure-requests",
+    ].join("; "),
+  },
+];
+
+const docsSecurityHeaders = [
+  {
+    key: "X-Frame-Options",
+    value: "DENY",
+  },
+  {
+    key: "X-Content-Type-Options",
+    value: "nosniff",
+  },
+  {
+    key: "X-XSS-Protection",
+    value: "1; mode=block",
+  },
+  {
+    key: "Referrer-Policy",
+    value: "strict-origin-when-cross-origin",
+  },
+  {
+    key: "Permissions-Policy",
+    value:
+      "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+  },
+  {
+    key: "Strict-Transport-Security",
+    value: "max-age=31536000; includeSubDomains",
+  },
+  {
+    key: "Content-Security-Policy",
+    value: [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://eu.i.posthog.com https://eu-assets.i.posthog.com",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: https://www.google-analytics.com https://www.googletagmanager.com https://mintcdn.com https://d3gk2c5xim1je2.cloudfront.net",
+      "font-src 'self'",
+      "connect-src 'self' https://www.google-analytics.com https://eu.i.posthog.com https://eu-assets.i.posthog.com https://api.trieve.ai https://alwaysfurther.mintlify.app https://alwaysfurther.mintlify.dev",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
@@ -49,7 +92,15 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/:path*",
+        source: "/docs",
+        headers: docsSecurityHeaders,
+      },
+      {
+        source: "/docs/:path*",
+        headers: docsSecurityHeaders,
+      },
+      {
+        source: "/:path((?!docs(?:/|$)).*)",
         headers: securityHeaders,
       },
     ];
