@@ -80,24 +80,30 @@ const nextConfig: NextConfig = {
         destination: "https://nono.sh/docs/:path*",
         permanent: true,
       },
+      {
+        source:
+          "/:path((?!docs(?:/|$)|mintlify-assets(?:/|$)|_next(?:/|$)|api(?:/|$)|favicon\\.ico$|robots\\.txt$|sitemap\\.xml$).+)",
+        destination: "/docs/:path",
+        permanent: false,
+      },
     ];
   },
   async rewrites() {
     return [
       {
         source: "/docs",
-        destination: "https://alwaysfurther.mintlify.app",
+        destination: "https://alwaysfurther.mintlify.dev/docs",
       },
       {
         source: "/docs/:match*",
-        destination: "https://alwaysfurther.mintlify.app/:match*",
+        destination: "https://alwaysfurther.mintlify.dev/docs/:match*",
       },
       {
         source: "/mintlify-assets/:match*",
-        destination: "https://alwaysfurther.mintlify.app/mintlify-assets/:match*",
+        destination: "https://alwaysfurther.mintlify.dev/mintlify-assets/:match*",
       },
     ];
-  }
+  },
 };
 
 export default nextConfig;
