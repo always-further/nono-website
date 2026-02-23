@@ -82,7 +82,7 @@ const nextConfig: NextConfig = {
       },
       {
         source:
-          "/:path((?!docs(?:/|$)|mintlify-assets(?:/|$)|_next(?:/|$)|api(?:/|$)|favicon\\.ico$|robots\\.txt$|sitemap\\.xml$).+)",
+          "/:path((?!docs(?:/|$)|mintlify-assets(?:/|$)|_next(?:/|$)|api(?:/|$)|favicon\\.ico$|robots\\.txt$|sitemap\\.xml$|.*\\.[^/]+$).+)",
         destination: "/docs/:path",
         permanent: true,
       },
