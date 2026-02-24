@@ -71,6 +71,8 @@ const docsSecurityHeaders = [
   },
   {
     key: "Content-Security-Policy",
+    // Mintlify docs CSP reference:
+    // https://www.mintlify.com/docs/deploy/csp-configuration
     value: [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://eu.i.posthog.com https://eu-assets.i.posthog.com",
