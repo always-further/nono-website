@@ -136,7 +136,7 @@ const nextConfig: NextConfig = {
       },
       {
         source:
-          "/:path((?!docs(?:/|$)|mintlify-assets(?:/|$)|_next(?:/|$)|api(?:/|$)|favicon\\.ico$|robots\\.txt$|sitemap\\.xml$|.*\\.[^/]+$).+)",
+          "/:path((?!docs(?:/|$)|blog(?:/|$)|linux-sandbox(?:/|$)|undo(?:/|$)|audit-trail(?:/|$)|provenance(?:/|$)|runtime-supervisor(?:/|$)|python-sdk(?:/|$)|typescript-sdk(?:/|$)|guides(?:/|$)|mintlify-assets(?:/|$)|_next(?:/|$)|api(?:/|$)|favicon\\.ico$|robots\\.txt$|sitemap\\.xml$|.*\\.[^/]+$).+)",
         destination: "/docs/:path",
         permanent: true,
       },

@@ -1,6 +1,8 @@
 "use client";
 
 import { Highlight, themes } from "prism-react-renderer";
+import { SectionHeader } from "@/components/ui/SectionHeader";
+import { GlassCard } from "@/components/ui/GlassCard";
 
 function PythonLogo({ className }: { className?: string }) {
   return (
@@ -89,23 +91,29 @@ const ffiLanguages = [
 
 export default function SdkPreview() {
   return (
-    <section className="py-24 px-6">
+    <section className="py-32 px-6">
       <div className="max-w-4xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 tracking-tight">
-          Orchestrate Secure Environments
-        </h2>
-        <p className="text-muted text-center max-w-2xl mx-auto text-sm md:text-base leading-relaxed mb-16">
-          Enforce kernel-level isolation, network filtering, and atomic rollbacks with native SDKs. Published on PyPI, npm, and crates.io.
-        </p>
+        <SectionHeader
+          badge="SDKs"
+          title="Orchestrate Secure Environments"
+          subtitle="Enforce kernel-level isolation, network filtering, and atomic rollbacks with native SDKs. Published on PyPI, npm, and crates.io."
+        />
 
         <div className="grid md:grid-cols-3 gap-4">
           {snippets.map((snippet) => (
-            <div
+            <GlassCard
               key={snippet.label}
-              className="bg-code-bg rounded-xl overflow-hidden border border-border"
+              hoverable
+              className="overflow-hidden"
             >
-              <div className="px-4 py-2.5 border-b border-gray-700 flex items-center gap-2">
-                <snippet.icon className="w-4 h-4" />
+              {/* Terminal chrome header */}
+              <div className="px-4 py-2.5 border-b border-[rgba(255,255,255,0.06)] flex items-center gap-2">
+                <div className="flex items-center gap-1.5 mr-2">
+                  <div className="w-2 h-2 rounded-full bg-[rgba(255,255,255,0.08)]" />
+                  <div className="w-2 h-2 rounded-full bg-[rgba(255,255,255,0.08)]" />
+                  <div className="w-2 h-2 rounded-full bg-[rgba(255,255,255,0.08)]" />
+                </div>
+                <snippet.icon className="w-3.5 h-3.5" />
                 <span className="text-xs font-medium text-muted">
                   {snippet.label}
                 </span>
@@ -130,23 +138,23 @@ export default function SdkPreview() {
                   </pre>
                 )}
               </Highlight>
-            </div>
+            </GlassCard>
           ))}
         </div>
 
-        <div className="mt-8 border border-border rounded-xl p-8 bg-code-bg">
+        <GlassCard className="mt-6 p-8">
           <p className="text-sm text-muted text-center mb-6">
             C FFI bindings for any language with C interop
           </p>
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="flex flex-wrap justify-center gap-3">
             {ffiLanguages.map((lang) => (
               <div
                 key={lang.name}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-white/[0.02]"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] backdrop-blur-sm"
               >
                 <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: lang.color }}
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: lang.color, boxShadow: `0 0 8px ${lang.color}40` }}
                 />
                 <span className="text-sm font-medium text-muted">
                   {lang.name}
@@ -154,7 +162,7 @@ export default function SdkPreview() {
               </div>
             ))}
           </div>
-        </div>
+        </GlassCard>
       </div>
     </section>
   );

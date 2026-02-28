@@ -1,59 +1,116 @@
-import { FileText, Lock, Eye } from "lucide-react";
+"use client";
+
+import { FileText, Lock, Eye, BarChart3 } from "lucide-react";
+import { GlassCard } from "@/components/ui/GlassCard";
+import { SectionHeader } from "@/components/ui/SectionHeader";
+import { TextScramble } from "@/components/hero/TextScramble";
 
 const steps = [
   {
     icon: FileText,
+    number: "01",
     label: "Define",
     title: "Policy",
     description:
-      "JSON profiles declare filesystem paths, network hosts, and denied commands. Groups compose into profiles that match your agent's runtime.",
+      "JSON profiles declare filesystem paths, network hosts, and denied commands.",
   },
   {
     icon: Lock,
+    number: "02",
     label: "Enforce",
     title: "Kernel Sandbox",
     description:
-      "Landlock on Linux and Seatbelt on macOS create an irrevocable allow-list. No API can widen permissions after the sandbox is applied.",
+      "Landlock and Seatbelt create irrevocable allow-lists at the kernel level.",
   },
   {
     icon: Eye,
+    number: "03",
     label: "Supervise",
     title: "Runtime Proxy",
     description:
-      "An unsandboxed supervisor handles approval prompts, credential injection, and network filtering. The agent only reaches localhost.",
+      "An unsandboxed supervisor handles approvals and network filtering.",
+  },
+  {
+    icon: BarChart3,
+    number: "04",
+    label: "Audit",
+    title: "Verify",
+    description:
+      "Merkle-tree session logs with cryptographic verification and atomic rollback.",
   },
 ];
 
 export default function HowItWorks() {
   return (
-    <section className="py-24 px-6">
-      <div className="max-w-4xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 tracking-tight">
-          How nono works
-        </h2>
-        <p className="text-muted text-center mb-16 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
-          Three layers between your agent and the operating system.
-        </p>
+    <section className="py-32 px-6">
+      <div className="max-w-5xl mx-auto">
+        <SectionHeader
+          badge="Architecture"
+          title="How nono works"
+          subtitle="Four layers between your agent and the operating system."
+        />
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {steps.map((step, index) => (
-            <div key={step.label} className="text-center md:text-left">
-              <div className="flex items-center justify-center md:justify-start gap-3 mb-4">
-                <div className="w-10 h-10 rounded-lg border border-border flex items-center justify-center">
-                  <step.icon className="w-5 h-5 text-muted" strokeWidth={1.5} />
+        <div className="relative">
+          <svg
+            className="absolute top-12 left-0 w-full h-4 hidden md:block pointer-events-none"
+            viewBox="0 0 1000 16"
+            preserveAspectRatio="none"
+          >
+            <defs>
+              <linearGradient id="step-line" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="rgba(255,255,255,0.2)" />
+                <stop offset="50%" stopColor="rgba(255,255,255,0.15)" />
+                <stop offset="100%" stopColor="rgba(255,255,255,0.1)" />
+              </linearGradient>
+            </defs>
+            <line x1="125" y1="8" x2="875" y2="8" stroke="url(#step-line)" strokeWidth="1" strokeDasharray="6 6" className="animate-flow-line" />
+            <circle cx="125" cy="8" r="3" fill="rgba(255,255,255,0.3)" />
+            <circle cx="375" cy="8" r="3" fill="rgba(255,255,255,0.25)" />
+            <circle cx="625" cy="8" r="3" fill="rgba(255,255,255,0.2)" />
+            <circle cx="875" cy="8" r="3" fill="rgba(255,255,255,0.2)" />
+          </svg>
+
+          <div className="grid md:grid-cols-4 gap-4">
+            {steps.map((step) => (
+              <GlassCard key={step.label} className="p-6 relative">
+                <div className="flex items-center gap-3 mb-5">
+                  <span
+                    className="text-3xl font-bold font-mono tracking-tighter text-foreground/40"
+                    style={{
+                      textShadow: "0 0 30px rgba(255,255,255,0.08)",
+                    }}
+                  >
+                    {step.number}
+                  </span>
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center"
+                    style={{ background: "rgba(255,255,255,0.05)" }}
+                  >
+                    <step.icon
+                      className="w-4 h-4 text-foreground/50"
+                      strokeWidth={1.5}
+                    />
+                  </div>
                 </div>
-                <span className="text-xs font-medium uppercase tracking-widest text-muted">
-                  {index + 1}. {step.label}
+                <span className="text-[10px] font-mono font-medium uppercase tracking-[0.2em] block mb-2 text-foreground/40">
+                  <TextScramble text={step.label} />
                 </span>
-              </div>
-              <h3 className="text-lg font-semibold mb-2 tracking-tight">
-                {step.title}
-              </h3>
-              <p className="text-sm text-muted leading-relaxed">
-                {step.description}
-              </p>
-            </div>
-          ))}
+                <h3 className="text-lg font-semibold mb-2 tracking-tight">
+                  <TextScramble text={step.title} />
+                </h3>
+                <p className="text-sm text-muted leading-relaxed">
+                  <TextScramble text={step.description} />
+                </p>
+
+                <div
+                  className="absolute bottom-0 left-6 right-6 h-px"
+                  style={{
+                    background: "linear-gradient(90deg, rgba(255,255,255,0.08), transparent)",
+                  }}
+                />
+              </GlassCard>
+            ))}
+          </div>
         </div>
       </div>
     </section>

@@ -1,7 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, X, Github } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  Menu,
+  X,
+  Github,
+  ChevronDown,
+  Lock,
+  Undo2,
+  ScrollText,
+  Fingerprint,
+  Shield,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 const DiscordIcon = ({ size = 20 }: { size?: number }) => (
   <svg
@@ -15,75 +28,187 @@ const DiscordIcon = ({ size = 20 }: { size?: number }) => (
   </svg>
 );
 
-type NavLink = {
+interface DropdownItem {
   href: string;
   label: string;
-  external?: boolean;
-  iconOnly?: boolean;
-  icon?: typeof Github | "discord";
-};
+  description: string;
+  icon: LucideIcon;
+}
 
-const navLinks: NavLink[] = [
-  { href: "#features", label: "Features" },
-  { href: "#quick-start", label: "Install" },
+interface NavItem {
+  label: string;
+  href?: string;
+  dropdown?: DropdownItem[];
+  external?: boolean;
+}
+
+const infraDropdown: DropdownItem[] = [
   {
-    href: "/docs",
-    label: "Docs",
+    href: "/linux-sandbox",
+    label: "Linux Sandbox",
+    description: "Landlock & Seatbelt kernel isolation",
+    icon: Lock,
   },
   {
-    href: "https://github.com/always-further/nono",
-    label: "GitHub",
-    icon: Github,
-    iconOnly: true,
-    external: true,
+    href: "/undo",
+    label: "Undo & Rollback",
+    description: "Atomic filesystem snapshots",
+    icon: Undo2,
   },
   {
-    href: "https://discord.gg/pPcjYzGvbS",
-    label: "Discord",
-    icon: "discord",
-    iconOnly: true,
-    external: true,
+    href: "/audit-trail",
+    label: "Audit Trail",
+    description: "Cryptographic audit log",
+    icon: ScrollText,
+  },
+  {
+    href: "/provenance",
+    label: "Provenance",
+    description: "Sigstore supply chain integrity",
+    icon: Fingerprint,
+  },
+  {
+    href: "/runtime-supervisor",
+    label: "Runtime Supervisor",
+    description: "Dynamic permission supervisor",
+    icon: Shield,
   },
 ];
 
+const sdkDropdown: DropdownItem[] = [
+  {
+    href: "/python-sdk",
+    label: "Python SDK",
+    description: "nono-py on PyPI",
+    icon: Lock,
+  },
+  {
+    href: "/typescript-sdk",
+    label: "TypeScript SDK",
+    description: "nono-ts on npm",
+    icon: Lock,
+  },
+];
+
+const navItems: NavItem[] = [
+  { label: "Infrastructure", dropdown: infraDropdown },
+  { label: "SDKs", dropdown: sdkDropdown },
+  { label: "Guides", href: "/guides" },
+  { label: "Blog", href: "/blog" },
+  { label: "Docs", href: "/docs" },
+];
+
+function DropdownMenu({ items }: { items: DropdownItem[] }) {
+  return (
+    <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+      <div className="rounded-xl border border-border-strong bg-background-secondary/95 backdrop-blur-xl shadow-2xl p-2 min-w-[280px]">
+        {items.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="flex items-start gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-hover transition-colors"
+          >
+            <item.icon
+              size={16}
+              className="text-muted mt-0.5 shrink-0"
+              strokeWidth={1.5}
+            />
+            <div>
+              <div className="text-sm font-medium text-foreground">
+                {item.label}
+              </div>
+              <div className="text-xs text-muted">{item.description}</div>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
+  const pathname = usePathname();
+
+  const isActive = (item: NavItem) => {
+    if (item.href) return pathname === item.href;
+    if (item.dropdown)
+      return item.dropdown.some((d) => pathname === d.href);
+    return false;
+  };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-border">
-      <nav className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
-        <a href="#" className="font-semibold text-lg">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+      <nav className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
+        <Link
+          href="/"
+          className="font-bold text-xl bg-gradient-to-r from-accent to-accent-blue bg-clip-text text-transparent"
+        >
           nono
-        </a>
+        </Link>
 
         {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-6">
-          {navLinks.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              target={link.external ? "_blank" : undefined}
-              rel={link.external ? "noopener noreferrer" : undefined}
-              className="text-sm text-muted hover:text-foreground transition-colors"
-              aria-label={link.label}
-              title={link.label}
-            >
-              {link.iconOnly ? (
-                link.icon === "discord" ? (
-                  <DiscordIcon size={18} />
-                ) : link.icon ? (
-                  <link.icon size={18} />
-                ) : null
-              ) : (
-                link.label
-              )}
-            </a>
-          ))}
+        <div className="hidden lg:flex items-center gap-1">
+          {navItems.map((item) =>
+            item.dropdown ? (
+              <div key={item.label} className="relative group">
+                <button
+                  className={`flex items-center gap-1 px-3 py-2 text-sm rounded-lg transition-colors ${
+                    isActive(item)
+                      ? "text-foreground"
+                      : "text-muted hover:text-foreground"
+                  }`}
+                >
+                  {item.label}
+                  <ChevronDown
+                    size={14}
+                    className="transition-transform group-hover:rotate-180"
+                  />
+                </button>
+                <DropdownMenu items={item.dropdown} />
+              </div>
+            ) : (
+              <Link
+                key={item.label}
+                href={item.href!}
+                className={`px-3 py-2 text-sm rounded-lg transition-colors ${
+                  isActive(item)
+                    ? "text-foreground"
+                    : "text-muted hover:text-foreground"
+                }`}
+              >
+                {item.label}
+              </Link>
+            ),
+          )}
+        </div>
+
+        {/* Right actions */}
+        <div className="hidden lg:flex items-center gap-3">
+          <a
+            href="https://discord.gg/pPcjYzGvbS"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2 text-muted hover:text-foreground transition-colors"
+            aria-label="Discord"
+          >
+            <DiscordIcon size={18} />
+          </a>
+          <a
+            href="https://github.com/always-further/nono"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-border-strong text-foreground hover:bg-surface-hover transition-colors"
+          >
+            <Github size={16} />
+            GitHub
+          </a>
         </div>
 
         {/* Mobile menu button */}
         <button
-          className="md:hidden p-2"
+          className="lg:hidden p-2"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="Toggle menu"
         >
@@ -93,25 +218,70 @@ export default function Header() {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-black border-b border-border">
-          <div className="px-6 py-4 flex flex-col gap-4">
-            {navLinks.map((link) => (
+        <div className="lg:hidden bg-background border-b border-border">
+          <div className="px-6 py-4 flex flex-col gap-1">
+            {navItems.map((item) =>
+              item.dropdown ? (
+                <div key={item.label}>
+                  <button
+                    onClick={() =>
+                      setMobileExpanded(
+                        mobileExpanded === item.label ? null : item.label,
+                      )
+                    }
+                    className="flex items-center justify-between w-full py-2 text-muted hover:text-foreground transition-colors"
+                  >
+                    <span>{item.label}</span>
+                    <ChevronDown
+                      size={16}
+                      className={`transition-transform ${mobileExpanded === item.label ? "rotate-180" : ""}`}
+                    />
+                  </button>
+                  {mobileExpanded === item.label && (
+                    <div className="pl-4 pb-2 flex flex-col gap-1">
+                      {item.dropdown.map((d) => (
+                        <Link
+                          key={d.href}
+                          href={d.href}
+                          className="py-2 text-sm text-muted hover:text-foreground transition-colors"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          {d.label}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  key={item.label}
+                  href={item.href!}
+                  className="py-2 text-muted hover:text-foreground transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ),
+            )}
+            <div className="flex items-center gap-4 pt-4 border-t border-border mt-2">
               <a
-                key={link.href}
-                href={link.href}
-                target={link.external ? "_blank" : undefined}
-                rel={link.external ? "noopener noreferrer" : undefined}
-                className="text-muted hover:text-foreground transition-colors flex items-center gap-3"
-                onClick={() => setMobileMenuOpen(false)}
+                href="https://discord.gg/pPcjYzGvbS"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted hover:text-foreground transition-colors"
               >
-                {link.icon === "discord" ? (
-                  <DiscordIcon size={20} />
-                ) : link.icon ? (
-                  <link.icon size={20} />
-                ) : null}
-                <span>{link.label}</span>
+                <DiscordIcon size={20} />
               </a>
-            ))}
+              <a
+                href="https://github.com/always-further/nono"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted hover:text-foreground transition-colors flex items-center gap-2"
+              >
+                <Github size={20} />
+                <span>GitHub</span>
+              </a>
+            </div>
           </div>
         </div>
       )}

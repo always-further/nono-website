@@ -1,0 +1,126 @@
+---
+title: "Undo for AI Agents"
+description: "How to use nono's atomic snapshot system to safely experiment with AI agents and roll back unwanted changes."
+date: "2026-02-27"
+---
+
+AI coding agents make changes at scale. A single session can touch dozens of files &mdash; refactoring functions, updating dependencies, modifying configuration. When something goes wrong, you need a reliable way to undo everything without manually tracking what changed.
+
+nono's snapshot system captures the filesystem state before every agent session and lets you restore it with a single command.
+
+## How snapshots work
+
+When nono starts an agent session, it walks every file in the sandbox scope and stores a content-addressed copy. Each file is hashed with SHA-256, and the hash is used as the storage key. This means:
+
+- Identical files share storage (deduplication)
+- The snapshot database grows only by unique content
+- Verification is built in &mdash; corrupted files produce different hashes
+
+After the session ends, a second snapshot captures the final state. The diff between the two snapshots tells you exactly what changed.
+
+## Listing sessions
+
+```bash
+nono sessions list
+```
+
+This shows all recorded sessions with their IDs, timestamps, and number of files changed.
+
+## Reviewing changes
+
+Before deciding to undo, review what the agent changed:
+
+```bash
+nono diff <session-id>
+```
+
+This produces a unified diff showing:
+
+- New files (added by the agent)
+- Modified files (with line-level changes)
+- Deleted files
+
+<Tip>
+  Pipe the diff output to your preferred review tool. For example, `nono diff latest | delta` for side-by-side rendering with syntax highlighting.
+</Tip>
+
+## Undoing a session
+
+To restore all files to their pre-session state:
+
+```bash
+nono undo <session-id>
+```
+
+This is an atomic operation &mdash; either all files are restored or none are. The undo itself is recorded as a new snapshot, so you can undo the undo if needed.
+
+## Selective restoration
+
+Sometimes you want to keep some of the agent's changes but revert others. nono supports file-level selective restoration:
+
+```bash
+nono undo <session-id> --files src/auth/middleware.ts package.json
+```
+
+This restores only the specified files, leaving all other agent changes in place.
+
+## Practical workflows
+
+### Experiment-and-compare
+
+Run multiple agent sessions with different prompts or configurations, then compare the results:
+
+```bash
+# Session 1: conservative approach
+nono run --allow ~/projects/myapp -- claude "refactor auth module"
+nono diff latest > approach-1.diff
+
+# Undo and try again
+nono undo latest
+
+# Session 2: aggressive approach
+nono run --allow ~/projects/myapp -- claude "rewrite auth module from scratch"
+nono diff latest > approach-2.diff
+```
+
+Compare the two diffs and keep the better result.
+
+### CI integration
+
+In CI pipelines, capture a snapshot before the agent runs and automatically revert if tests fail:
+
+```bash
+nono run --allow . -- claude "fix failing tests"
+
+if ! npm test; then
+  echo "Agent changes broke tests, reverting"
+  nono undo latest
+  exit 1
+fi
+```
+
+<Warning>
+  Snapshots are local to the machine where nono runs. They are not synchronized across CI workers or team members. For shared state, commit the agent's changes to a branch and use standard git workflows.
+</Warning>
+
+## Storage management
+
+Snapshots accumulate over time. To see storage usage:
+
+```bash
+nono sessions stats
+```
+
+To prune old snapshots:
+
+```bash
+nono sessions prune --older-than 30d
+```
+
+This removes snapshots older than 30 days while preserving the content-addressed store entries that are still referenced by newer snapshots.
+
+## Next steps
+
+- Read the [Undo & Rollback](/undo) infrastructure page for technical details on the snapshot format
+- Read the [Audit Trail](/audit-trail) page to understand how snapshots integrate with the cryptographic audit log
+- Check the [full documentation](/docs) for the complete snapshot CLI reference

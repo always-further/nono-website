@@ -1,0 +1,117 @@
+---
+title: "Runtime Governance for AI Agents"
+description: "Policy-as-code, runtime supervision, and audit compliance for AI agent deployments using nono."
+date: "2026-02-26"
+---
+
+As AI agents move from developer tools to production infrastructure, organizations need governance frameworks that go beyond "just sandbox it." Runtime governance means defining policies as code, enforcing them at the kernel level, auditing every operation, and maintaining a verifiable chain of custody.
+
+nono provides the infrastructure layer for this governance model.
+
+## Policy as code
+
+Every nono policy is a JSON file that can be version-controlled, reviewed in pull requests, and tested in CI. There is no implicit configuration &mdash; every permission is explicitly declared.
+
+```json filename="profiles/production-agent.json"
+{
+  "name": "production-agent",
+  "version": "1.0.0",
+  "sandbox": {
+    "allow": ["/opt/app/workspace"],
+    "deny": ["/etc/secrets", "/var/run/docker.sock"],
+    "groups": ["python-3.12", "nodejs-20", "deny-credentials"]
+  },
+  "network": {
+    "allow": ["api.internal.company.com", "registry.npmjs.org"],
+    "deny_private": true
+  },
+  "supervisor": {
+    "enabled": true,
+    "webhook": "https://governance.internal.company.com/approve"
+  },
+  "trust": {
+    "signers": ["deploy@company.com"],
+    "require_signed_instructions": true
+  }
+}
+```
+
+<Note>
+  Profiles support composition via the `groups` field. Built-in groups like `python-3.12` and `deny-credentials` encapsulate common patterns. You can define custom groups for your organization's requirements.
+</Note>
+
+## The governance stack
+
+nono's governance model has four layers, each building on the previous:
+
+### 1. Isolation
+
+The [kernel sandbox](/linux-sandbox) is the foundation. Landlock (Linux) and Seatbelt (macOS) create an irrevocable allow-list at the kernel level. This is not a filter that inspects operations after the fact &mdash; it is a structural constraint that makes unauthorized operations impossible.
+
+### 2. Supervision
+
+The [runtime supervisor](/runtime-supervisor) handles the dynamic nature of agent workflows. When an agent needs access beyond its initial scope, the supervisor intercepts the request and routes it through an approval workflow. This can be a terminal prompt for development, or a webhook for production systems.
+
+### 3. Audit
+
+The [audit trail](/audit-trail) records every operation in a Merkle tree. The cryptographic commitment over the session history makes the log tamper-evident. This satisfies compliance requirements that demand verifiable proof of what an AI system did and did not do.
+
+### 4. Provenance
+
+[Supply chain provenance](/provenance) via Sigstore ensures that the instructions governing agent behavior (CLAUDE.md, AGENT.md, SKILLS.md) were authored by trusted identities. This prevents prompt injection via tampered instruction files.
+
+## Compliance considerations
+
+For organizations subject to SOC 2, ISO 27001, or similar frameworks, nono's audit trail provides the evidence chain needed for AI agent governance:
+
+- **Access control**: Kernel-level sandbox proves minimum-privilege enforcement
+- **Audit logging**: Merkle-tree-committed session logs with cryptographic integrity
+- **Change management**: Policy-as-code with version control integration
+- **Incident response**: Atomic undo restores systems to known-good state
+
+<Tip>
+  Export audit logs in JSON format and ingest them into your existing SIEM system. The structured format includes operation type, target, timestamp, and disposition fields suitable for automated alerting.
+</Tip>
+
+## Webhook-based approval
+
+For production deployments, configure the supervisor to use webhooks instead of terminal prompts:
+
+```json
+{
+  "supervisor": {
+    "webhook": "https://governance.internal.company.com/approve",
+    "timeout_ms": 30000,
+    "default_on_timeout": "deny"
+  }
+}
+```
+
+The webhook receives a JSON payload describing the requested operation. Your governance service can apply custom logic &mdash; checking team permissions, time-of-day restrictions, or risk scoring &mdash; before returning an approve or deny response.
+
+<Warning>
+  Always set `default_on_timeout` to `deny`. If the governance service is unreachable, the agent should be blocked rather than allowed to proceed unchecked.
+</Warning>
+
+## Testing policies
+
+Validate profiles before deploying them:
+
+```bash
+nono profiles validate production-agent.json
+```
+
+Dry-run a session to see what would be allowed and denied:
+
+```bash
+nono run --profile production-agent --dry-run -- claude
+```
+
+The dry-run output lists every operation the agent attempts and whether the policy would allow or deny it, without actually executing anything.
+
+## Next steps
+
+- Read the [Runtime Supervisor](/runtime-supervisor) page for technical details on the IPC architecture
+- Read the [Audit Trail](/audit-trail) page for Merkle tree verification details
+- Read the [Provenance](/provenance) page for Sigstore signing workflows
+- Check the [full documentation](/docs) for the complete governance configuration reference

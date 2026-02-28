@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Github, BookOpen, Scale } from "lucide-react";
 
 const DiscordIcon = ({ size = 18 }: { size?: number }) => (
@@ -13,25 +14,101 @@ const DiscordIcon = ({ size = 18 }: { size?: number }) => (
   </svg>
 );
 
+interface FooterColumn {
+  title: string;
+  links: { label: string; href: string; external?: boolean }[];
+}
+
+const columns: FooterColumn[] = [
+  {
+    title: "Product",
+    links: [
+      { label: "Home", href: "/" },
+      {
+        label: "GitHub",
+        href: "https://github.com/always-further/nono",
+        external: true,
+      },
+    ],
+  },
+  {
+    title: "Infrastructure",
+    links: [
+      { label: "Linux Sandbox", href: "/linux-sandbox" },
+      { label: "Undo & Rollback", href: "/undo" },
+      { label: "Audit Trail", href: "/audit-trail" },
+      { label: "Provenance", href: "/provenance" },
+      { label: "Runtime Supervisor", href: "/runtime-supervisor" },
+    ],
+  },
+  {
+    title: "SDKs",
+    links: [
+      { label: "Python SDK", href: "/python-sdk" },
+      { label: "TypeScript SDK", href: "/typescript-sdk" },
+    ],
+  },
+  {
+    title: "Guides",
+    links: [
+      { label: "Safe AI Agent Execution", href: "/guides/safe-ai-agent-execution" },
+      { label: "Undo for AI Agents", href: "/guides/undo-for-ai-agents" },
+      { label: "Runtime Governance", href: "/guides/runtime-governance-ai" },
+    ],
+  },
+  {
+    title: "Resources",
+    links: [
+      { label: "Blog", href: "/blog" },
+      { label: "Docs", href: "/docs" },
+      {
+        label: "Discord",
+        href: "https://discord.gg/pPcjYzGvbS",
+        external: true,
+      },
+    ],
+  },
+];
+
 export default function Footer() {
   return (
     <footer className="py-16 px-6 border-t border-border">
-      <div className="max-w-5xl mx-auto">
-        {/* Discord CTA */}
-        <div className="text-center mb-12">
-          <p className="text-muted mb-4">Questions or feedback?</p>
-          <a
-            href="https://discord.gg/pPcjYzGvbS"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-accent transition-colors"
-          >
-            <DiscordIcon size={18} />
-            Join the Discord community
-          </a>
+      <div className="max-w-6xl mx-auto">
+        {/* Sitemap columns */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-16">
+          {columns.map((col) => (
+            <div key={col.title}>
+              <h3 className="text-sm font-semibold text-foreground mb-4">
+                {col.title}
+              </h3>
+              <ul className="space-y-2.5">
+                {col.links.map((link) => (
+                  <li key={link.href}>
+                    {link.external ? (
+                      <a
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-muted hover:text-foreground transition-colors"
+                      >
+                        {link.label}
+                      </a>
+                    ) : (
+                      <Link
+                        href={link.href}
+                        className="text-sm text-muted hover:text-foreground transition-colors"
+                      >
+                        {link.label}
+                      </Link>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
 
-        {/* Links and branding */}
+        {/* Branding row */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-8 border-t border-border">
           <div className="flex items-center gap-4">
             <a
@@ -40,9 +117,14 @@ export default function Footer() {
               rel="noopener noreferrer"
               className="opacity-60 hover:opacity-100 transition-opacity"
             >
-              <Image src="/af-logo.svg" alt="Always Further" width={130} height={27} />
+              <Image
+                src="/af-logo.svg"
+                alt="Always Further"
+                width={130}
+                height={27}
+              />
             </a>
-            <span className="text-border">|</span>
+            <span className="text-border-strong">|</span>
             <a
               href="https://alwaysfurther.ai/blog?utm_source=nono-sh"
               target="_blank"

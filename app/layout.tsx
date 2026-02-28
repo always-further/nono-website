@@ -1,19 +1,10 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Geist, Geist_Mono } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import WebSiteSchema from "@/components/structured-data/WebSiteSchema";
 import SoftwareApplicationSchema from "@/components/structured-data/SoftwareApplicationSchema";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://nono.sh"),
@@ -74,7 +65,7 @@ export default function RootLayout({
         <SoftwareApplicationSchema />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${GeistSans.variable} ${GeistSans.className} ${GeistMono.variable} antialiased`}
       >
         {children}
         <Script
