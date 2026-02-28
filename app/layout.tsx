@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://nono.sh"),
   title: "nono - Next-Generation Agent Security",
   description:
-    "Kernel-enforced isolation, immutable auditing, and atomic rollbacks for AI agents - built into the nono CLI and native SDKs.",
+    "Kernel-enforced isolation, network filtering, immutable auditing, and atomic rollbacks for AI agents - built into the nono CLI and native SDKs.",
   keywords: [
     "AI agent sandbox",
     "AI agent security",
@@ -31,6 +31,9 @@ export const metadata: Metadata = {
     "Seatbelt sandbox",
     "Landlock sandbox",
     "secure AI agents",
+    "network filtering proxy",
+    "SSRF protection",
+    "AI agent network security",
   ],
   alternates: {
     canonical: '/',
@@ -38,7 +41,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "nono - Next-Generation Agent Security",
     description:
-      "Kernel-enforced isolation, immutable auditing, and atomic rollbacks for AI agents - built into the nono CLI and native SDKs.",
+      "Kernel-enforced isolation, network filtering, immutable auditing, and atomic rollbacks for AI agents - built into the nono CLI and native SDKs.",
     type: "website",
     locale: "en_US",
     images: [
@@ -54,7 +57,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "nono - Next-Generation Agent Security",
     description:
-      "Kernel-enforced isolation, immutable auditing, and atomic rollbacks for AI agents - built into the nono CLI and native SDKs.",
+      "Kernel-enforced isolation, network filtering, immutable auditing, and atomic rollbacks for AI agents - built into the nono CLI and native SDKs.",
     images: ["/logo.png"],
   },
 };

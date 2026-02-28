@@ -78,6 +78,15 @@ Sandbox::apply(&caps)?;`,
   },
 ];
 
+const ffiLanguages = [
+  { name: "C", color: "#A8B9CC" },
+  { name: "C++", color: "#00599C" },
+  { name: "Go", color: "#00ADD8" },
+  { name: "Swift", color: "#F05138" },
+  { name: "Ruby", color: "#CC342D" },
+  { name: "Zig", color: "#F7A41D" },
+];
+
 export default function SdkPreview() {
   return (
     <section className="py-24 px-6">
@@ -85,12 +94,9 @@ export default function SdkPreview() {
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 tracking-tight">
           Orchestrate Secure Environments
         </h2>
-        <p className="text-muted text-center max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
-          Programmable Guardrails for AI Agents - enforce kernel-level isolation, immutable audit trails, and atomic rollbacks with nono&apos;s native SDKs for Python, TypeScript, and Rust.
+        <p className="text-muted text-center max-w-2xl mx-auto text-sm md:text-base leading-relaxed mb-16">
+          Enforce kernel-level isolation, network filtering, and atomic rollbacks with native SDKs. Published on PyPI, npm, and crates.io.
         </p>
-        <span className="inline-block text-xs font-medium uppercase tracking-widest text-accent mt-3 mb-16">
-          Coming soon
-        </span>
 
         <div className="grid md:grid-cols-3 gap-4">
           {snippets.map((snippet) => (
@@ -126,6 +132,28 @@ export default function SdkPreview() {
               </Highlight>
             </div>
           ))}
+        </div>
+
+        <div className="mt-8 border border-border rounded-xl p-8 bg-code-bg">
+          <p className="text-sm text-muted text-center mb-6">
+            C FFI bindings for any language with C interop
+          </p>
+          <div className="flex flex-wrap justify-center gap-4">
+            {ffiLanguages.map((lang) => (
+              <div
+                key={lang.name}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-white/[0.02]"
+              >
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: lang.color }}
+                />
+                <span className="text-sm font-medium text-muted">
+                  {lang.name}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
