@@ -19,6 +19,15 @@ export function getMdxComponents(): MDXComponents {
         <table className="w-full text-sm">{children}</table>
       </div>
     ),
+    thead: ({ children }) => (
+      <thead className="bg-[rgba(255,255,255,0.04)] border-b border-border">{children}</thead>
+    ),
+    th: ({ children }) => (
+      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-strong">{children}</th>
+    ),
+    td: ({ children }) => (
+      <td className="px-4 py-3 border-t border-border text-muted">{children}</td>
+    ),
     blockquote: ({ children }) => (
       <blockquote className="border-l-2 border-accent pl-6 my-6 text-muted italic">
         {children}

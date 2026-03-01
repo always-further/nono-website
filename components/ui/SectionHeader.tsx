@@ -10,6 +10,7 @@ interface SectionHeaderProps {
   align?: "center" | "left";
   className?: string;
   glitch?: boolean;
+  scramble?: boolean;
 }
 
 export function SectionHeader({
@@ -19,6 +20,7 @@ export function SectionHeader({
   align = "center",
   className,
   glitch = false,
+  scramble = true,
 }: SectionHeaderProps) {
   return (
     <div
@@ -30,11 +32,11 @@ export function SectionHeader({
     >
       {badge && (
         <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border border-[rgba(255,255,255,0.12)] text-muted-strong bg-[rgba(255,255,255,0.04)] mb-6 backdrop-blur-sm">
-          <TextScramble text={badge} />
+          {scramble ? <TextScramble text={badge} /> : badge}
         </span>
       )}
       <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
-        <TextScramble text={title} glitch={glitch} />
+        {scramble ? <TextScramble text={title} glitch={glitch} /> : title}
       </h2>
       {subtitle && (
         <p
@@ -43,7 +45,7 @@ export function SectionHeader({
             align === "center" && "mx-auto",
           )}
         >
-          <TextScramble text={subtitle} glitch={glitch} />
+          {scramble ? <TextScramble text={subtitle} glitch={glitch} /> : subtitle}
         </p>
       )}
     </div>

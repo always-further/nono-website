@@ -59,6 +59,7 @@ const columns: FooterColumn[] = [
   {
     title: "Resources",
     links: [
+      { label: "Academy", href: "/academy" },
       { label: "Blog", href: "/blog" },
       { label: "Docs", href: "/docs" },
       {

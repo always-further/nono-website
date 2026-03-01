@@ -27,6 +27,7 @@ export default function GuidesIndexPage() {
               title="Guides"
               subtitle="Long-form technical guides on AI agent security, sandboxing, and runtime governance."
               align="left"
+              scramble={false}
             />
           </div>
 
