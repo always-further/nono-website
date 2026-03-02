@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 import { type Testimonial } from "@/types/testimonial";
 
 const AUTOPLAY_MS = 5000;
@@ -28,6 +29,10 @@ export default function Testimonials({ testimonials }: TestimonialsProps) {
   return (
     <section className="py-20 px-6">
       <div className="max-w-3xl mx-auto">
+        <SectionHeader
+          badge="Community"
+          title="From the community"
+        />
         <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-background-secondary">
           <div
             className="flex transition-transform duration-700 ease-out"

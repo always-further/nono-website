@@ -26,7 +26,7 @@ export default function CtaBanner() {
             <TextScramble text="Kernel-level isolation, cryptographic audit trails, and atomic rollbacks. Open source and ready to deploy." />
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <GradientButton href="https://github.com/always-further/nono" external size="lg">
+            <GradientButton href="https://nono.sh/docs/cli/getting_started/installation" external size="lg">
               Get Started <ArrowRight size={16} />
             </GradientButton>
             <GradientButton href="/docs" variant="outline" size="lg">

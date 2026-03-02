@@ -46,19 +46,21 @@ export function SdkPageLayout({
               .
             </p>
 
-            <GlassCard className="inline-flex items-center gap-3 px-4 py-3">
-              <code className="font-mono text-sm text-foreground">
-                {installCommand}
-              </code>
+            <div className="flex items-center gap-4">
+              <GlassCard className="inline-flex items-center px-5 py-3">
+                <code className="font-mono text-sm text-foreground">
+                  {installCommand}
+                </code>
+              </GlassCard>
               <a
                 href={registryUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-muted hover:text-foreground transition-colors"
+                className="text-sm text-accent hover:text-accent-hover transition-colors whitespace-nowrap"
               >
                 {registryName} &rarr;
               </a>
-            </GlassCard>
+            </div>
           </div>
         </section>
 
