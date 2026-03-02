@@ -7,7 +7,7 @@ const codeExamples = [
   {
     label: "macOS (Homebrew)",
     code: `brew tap always-further/nono
-brew install nono`,
+brew tap always-further/nono && brew install nono`,
   },
   {
     label: "Source",

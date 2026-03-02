@@ -1,69 +1,74 @@
+"use client";
+
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
+import { AnimatedBackground } from "@/components/ui/AnimatedBackground";
+import { GradientButton } from "@/components/ui/GradientButton";
+import { InstallSnippet } from "@/components/hero/InstallSnippet";
+import { TextScramble } from "@/components/hero/TextScramble";
 
 export default function Hero() {
   return (
-    <section className="pt-32 pb-16 px-6 relative">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(239,68,68,0.04)_0%,_transparent_70%)] pointer-events-none" />
-      <div className="relative max-w-5xl mx-auto text-center">
+    <section className="relative pt-28 pb-24 px-6 overflow-hidden min-h-[90vh] flex items-center">
+      <AnimatedBackground variant="hero" />
 
+      {/* Radial vignette */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: "radial-gradient(ellipse at 50% 0%, transparent 40%, rgba(6,6,10,0.6) 100%)",
+        }}
+      />
+
+      <div className="relative z-10 max-w-5xl mx-auto w-full text-center">
         <a
           href="https://alwaysfurther.ai?utm_source=nono-sh"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-3 mb-10 opacity-70 hover:opacity-100 transition-opacity"
+          className="inline-flex items-center gap-3 mb-10 opacity-60 hover:opacity-100 transition-opacity"
         >
-          <Image src="/af-logo.svg" alt="Always Further" width={160} height={33} />
+          <Image src="/af-logo.svg" alt="Always Further" width={140} height={29} />
         </a>
 
-        <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-6">
-          nono
+        <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold tracking-tighter mb-2 text-foreground">
+          <TextScramble text="nono" delay={200} scrambleDuration={1000} glitch />
         </h1>
-        <h2 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4">
-          Contain. Control. Correct.
+
+        <h2 className="text-2xl md:text-4xl lg:text-5xl font-semibold tracking-tight mb-6 leading-tight">
+          Runtime Safety Infrastructure
+          <br />
+          <span className="text-muted">for AI Agents</span>
         </h2>
 
-        <p className="text-lg md:text-xl text-muted max-w-2xl mx-auto mb-10">
-          Kernel-enforced isolation, immutable auditing, and atomic rollbacks for AI agents - built into the nono CLI and native SDKs.<br />
+        <p className="text-base md:text-lg text-muted max-w-xl mx-auto mb-10 leading-relaxed">
+          Kernel-enforced isolation, immutable auditing, and atomic rollbacks &mdash; built into the CLI and native SDKs.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <a
-            href="#quick-start"
-            className="inline-flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover text-white px-6 py-3 rounded-lg font-medium transition-colors"
-          >
-            Get Started
-            <ArrowRight size={18} />
-          </a>
-          <a
-            href="https://github.com/always-further/nono"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 border border-border hover:border-muted px-6 py-3 rounded-lg font-medium transition-colors"
-          >
-            View on GitHub
-          </a>
+          <GradientButton href="https://github.com/always-further/nono" external size="lg">
+            Get Started <ArrowRight size={18} />
+          </GradientButton>
+          <GradientButton href="/docs" variant="outline" size="lg">
+            Documentation
+          </GradientButton>
         </div>
 
-        <div className="mt-10 flex flex-col items-center gap-1 text-sm text-muted">
+        <InstallSnippet />
+
+        <div className="mt-8 flex flex-col items-center gap-1 text-sm text-muted">
           <div className="flex items-center gap-2">
             <span>From the creator of</span>
             <a
               href="https://sigstore.dev"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 font-medium text-foreground hover:text-accent transition-colors"
+              className="inline-flex items-center gap-1.5 font-medium text-foreground hover:text-muted-strong transition-colors"
             >
-              <Image
-                src="/sigstore.svg"
-                alt="Sigstore"
-                width={20}
-                height={20}
-              />
+              <Image src="/sigstore.svg" alt="Sigstore" width={18} height={18} />
               Sigstore
             </a>
           </div>
-          <span className="text-xs text-muted/70">
+          <span className="text-xs text-muted/60">
             The industry standard for software signing, used by PyPi, Homebrew, Maven and Google, GitHub, NVIDIA
           </span>
         </div>

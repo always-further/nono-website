@@ -28,7 +28,7 @@ export default function Testimonials({ testimonials }: TestimonialsProps) {
   return (
     <section className="py-20 px-6">
       <div className="max-w-3xl mx-auto">
-        <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-[#030716]">
+        <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-background-secondary">
           <div
             className="flex transition-transform duration-700 ease-out"
             style={{ transform: `translateX(-${activeIndex * 100}%)` }}
