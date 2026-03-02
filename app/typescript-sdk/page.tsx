@@ -1,13 +1,13 @@
 import { SdkPageLayout } from "@/components/sdk/SdkPageLayout";
 import { InfraCodeBlock } from "@/components/infrastructure/InfraCodeBlock";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { Lock, Globe, Undo2 } from "lucide-react";
+import { Lock, Shield, Search } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "TypeScript SDK - Runtime Safety for TypeScript AI Agents | nono",
   description:
-    "Enforce kernel-level isolation, network filtering, and atomic rollbacks from TypeScript with nono-ts.",
+    "Enforce kernel-level filesystem isolation from TypeScript with nono-ts. Landlock on Linux, Seatbelt on macOS.",
   alternates: { canonical: "/typescript-sdk" },
 };
 
@@ -16,8 +16,8 @@ const quickStart = `import { CapabilitySet, AccessMode, apply } from 'nono-ts';
 // Define capabilities
 const caps = new CapabilitySet();
 caps.allowPath('/project', AccessMode.ReadWrite);
-caps.allowNetwork('registry.npmjs.org');
-caps.blockNetwork(); // deny all other network
+caps.allowFile('/home/user/.gitconfig', AccessMode.Read);
+caps.blockNetwork(); // deny all outbound connections
 
 // Apply sandbox (irrevocable)
 apply(caps);
@@ -25,20 +25,23 @@ apply(caps);
 // Your agent code runs here, fully sandboxed
 await agent.run();`;
 
-const snapshotCode = `import { Snapshot } from 'nono-ts';
+const queryCode = `import {
+  CapabilitySet, AccessMode, QueryContext,
+  isSupported, supportInfo
+} from 'nono-ts';
 
-// Create a pre-execution snapshot
-const snapshotId = await Snapshot.create('/project');
+// Check platform support
+const info = supportInfo();
+console.log(info.platform, info.details);
 
-// Run the agent
-await agent.run();
+// Build capabilities and dry-run check
+const caps = new CapabilitySet();
+caps.allowPath('/project', AccessMode.ReadWrite);
 
-// Review changes
-const diff = await Snapshot.diff(snapshotId);
-console.log(\`Files changed: \${diff.files.length}\`);
-
-// Undo if needed
-await Snapshot.restore(snapshotId);`;
+const ctx = new QueryContext(caps);
+const result = ctx.queryPath('/etc/passwd', AccessMode.Read);
+console.log(result.status); // "denied"
+console.log(result.reason); // explains why`;
 
 export default function TypeScriptSdkPage() {
   return (
@@ -68,9 +71,15 @@ export default function TypeScriptSdkPage() {
             <p>
               This works with any Node.js runtime &mdash; standard Node, Bun, or
               Deno. The native bindings load the correct platform-specific
-              library automatically. Network filtering works at the kernel level,
-              so it constrains all HTTP clients including fetch, axios, and
-              node-fetch.
+              library automatically. Use{" "}
+              <code className="px-1.5 py-0.5 rounded bg-code-bg border border-border font-mono text-xs">
+                QueryContext
+              </code>{" "}
+              to dry-run permission checks before applying the sandbox, and{" "}
+              <code className="px-1.5 py-0.5 rounded bg-code-bg border border-border font-mono text-xs">
+                SandboxState
+              </code>{" "}
+              to serialize and restore capability sets.
             </p>
           </div>
         </GlassCard>
@@ -88,7 +97,7 @@ export default function TypeScriptSdkPage() {
         </GlassCard>
 
         <GlassCard className="p-6" glowColor="blue" hoverable>
-          <Globe
+          <Shield
             size={20}
             className="text-accent-blue mb-4"
             strokeWidth={1.5}
@@ -109,9 +118,9 @@ export default function TypeScriptSdkPage() {
           filename="sandbox.ts"
         />
         <InfraCodeBlock
-          code={snapshotCode}
+          code={queryCode}
           language="typescript"
-          filename="snapshots.ts"
+          filename="query.ts"
         />
 
         <GlassCard className="md:col-span-2 p-8">
@@ -123,17 +132,17 @@ export default function TypeScriptSdkPage() {
               {
                 icon: Lock,
                 title: "CapabilitySet",
-                desc: "Builder pattern for defining filesystem, network, and command rules. Immutable after apply().",
+                desc: "Builder pattern for defining filesystem access, network blocking, and command rules. Irrevocable after apply().",
               },
               {
-                icon: Undo2,
-                title: "Snapshot",
-                desc: "Async API for creating, diffing, and restoring SHA-256 content-addressed snapshots.",
+                icon: Search,
+                title: "QueryContext",
+                desc: "Dry-run permission checks against a capability set. Test whether a path or network access would be allowed before applying.",
               },
               {
-                icon: Globe,
-                title: "Audit",
-                desc: "Query session audit trails with typed filters. Stream operations in real-time or query after session end.",
+                icon: Shield,
+                title: "SandboxState",
+                desc: "Serialize and deserialize capability sets to JSON. Persist sandbox configurations or transfer them between processes.",
               },
             ].map((item) => (
               <div key={item.title}>

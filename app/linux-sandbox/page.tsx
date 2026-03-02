@@ -1,7 +1,7 @@
 import { InfraPageLayout } from "@/components/infrastructure/InfraPageLayout";
 import { InfraCodeBlock } from "@/components/infrastructure/InfraCodeBlock";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { Lock, Globe, Layers } from "lucide-react";
+import { Lock, Layers } from "lucide-react";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -31,38 +31,64 @@ const relatedPages = [
 ];
 
 const policyCode = `{
-  "name": "claude-code",
-  "sandbox": {
-    "allow": ["~/projects/myapp"],
-    "deny": ["~/.ssh", "~/.aws", "~/.config/gcloud"]
+  "meta": {
+    "name": "claude-code",
+    "version": "1.0.0",
+    "description": "Anthropic Claude Code CLI agent"
   },
-  "network": {
-    "allow": ["registry.npmjs.org", "api.github.com"],
-    "deny_private": true
+  "security": {
+    "groups": ["node_runtime", "python_runtime", "rust_runtime"]
   },
-  "commands": {
-    "allow": ["git", "npm", "node", "python3"],
-    "deny": ["curl", "wget", "ssh"]
-  }
+  "filesystem": {
+    "allow": ["$HOME/.claude"],
+    "read_file": ["$HOME/.gitconfig"]
+  },
+  "network": { "block": false },
+  "workdir": { "access": "readwrite" },
+  "undo": {
+    "exclude_patterns": ["node_modules", ".next", "target"]
+  },
+  "interactive": true
 }`;
 
+const bannerCode = `$ nono run --allow-cwd --proxy-allow llmapi -- agent
+
+  ▄█▄   nono v0.7.0
+ ▀▄^▄▀  - Halo Nono!
+
+Capabilities:
+  Filesystem:
+    /Users/user/.claude [read+write] (dir)
+    /Users/user/.local/share/claude [read] (dir)
+    /Users/user/.claude.json [read+write] (file)
+    /Users/user/.gitconfig [read] (file)
+    /Users/user/dev/myproject [read+write] (dir)
+    + 45 system/group paths (use -v to show)
+  Network:
+    outbound: proxy (localhost:0)
+
+Supervised mode: child sandboxed, parent manages network proxy.
+
+Applying Kernel sandbox protections.`;
+
 const landlockCode = `use landlock::{
-    ABI, Access, AccessFs, PathBeneath,
-    PathFd, Ruleset, RulesetAttr,
+    ABI, Access, AccessFs, AccessNet, BitFlags,
+    PathBeneath, PathFd, Ruleset, RulesetAttr,
+    RulesetCreatedAttr,
 };
 
-pub fn apply_sandbox(allowed: &[PathBuf]) -> Result<()> {
-    let abi = ABI::V5;
-    let access = AccessFs::from_all(abi);
+const TARGET_ABI: ABI = ABI::V5;
 
+pub fn apply_sandbox(caps: &CapabilitySet) -> Result<()> {
     let mut ruleset = Ruleset::default()
-        .handle_access(access)?
+        .handle_access(AccessFs::from_all(TARGET_ABI))?
         .create()?;
 
-    for path in allowed {
+    for (path, access_mode) in caps.paths() {
+        let flags = access_to_landlock(access_mode);
         let fd = PathFd::new(path)?;
         ruleset = ruleset.add_rule(
-            PathBeneath::new(fd, access)
+            PathBeneath::new(fd, flags)
         )?;
     }
 
@@ -120,9 +146,9 @@ export default function LinuxSandboxPage() {
           </h3>
           <p className="text-sm text-muted leading-relaxed mb-4">
             Define exactly what an agent can access with declarative JSON
-            profiles. 22 built-in groups cover language runtimes, credential
-            deny-lists, and dangerous commands. Profiles are version-controlled
-            alongside your code.
+            profiles. Built-in security groups cover language runtimes, cache
+            directories, and editor integrations. Profiles are
+            version-controlled alongside your code.
           </p>
           <Link
             href="/docs"
@@ -132,26 +158,13 @@ export default function LinuxSandboxPage() {
           </Link>
         </GlassCard>
 
-        {/* Platform support */}
-        <GlassCard className="p-6" glowColor="blue" hoverable>
-          <Globe size={20} className="text-accent-blue mb-4" strokeWidth={1.5} />
-          <h3 className="text-lg font-semibold mb-2 tracking-tight">
-            Runs Anywhere
-          </h3>
-          <p className="text-sm text-muted leading-relaxed mb-4">
-            No root required. Works on laptops, embedded devices, containers
-            (Docker, Podman, Kubernetes), and microvms (Kata, Firecracker).
-            Unprivileged userspace sandboxing on both macOS and Linux.
-          </p>
-          <div className="flex gap-2 flex-wrap">
-            <span className="px-2 py-0.5 rounded text-xs border border-border text-muted">
-              macOS via Seatbelt
-            </span>
-            <span className="px-2 py-0.5 rounded text-xs border border-border text-muted">
-              Linux via Landlock
-            </span>
-          </div>
-        </GlassCard>
+        {/* Live output */}
+        <InfraCodeBlock
+          code={bannerCode}
+          language="bash"
+          filename="terminal"
+          className="md:col-span-1"
+        />
 
         {/* Code examples */}
         <InfraCodeBlock
@@ -163,7 +176,7 @@ export default function LinuxSandboxPage() {
         <InfraCodeBlock
           code={landlockCode}
           language="rust"
-          filename="src/sandbox/landlock.rs"
+          filename="crates/nono/src/sandbox/linux.rs"
           className="md:col-span-1"
         />
 

@@ -1,13 +1,13 @@
 import { SdkPageLayout } from "@/components/sdk/SdkPageLayout";
 import { InfraCodeBlock } from "@/components/infrastructure/InfraCodeBlock";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { Lock, Globe, Undo2 } from "lucide-react";
+import { Lock, Shield, Search } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Python SDK - Runtime Safety for Python AI Agents | nono",
   description:
-    "Enforce kernel-level isolation, network filtering, and atomic rollbacks from Python with nono-py.",
+    "Enforce kernel-level filesystem isolation from Python with nono-py. Landlock on Linux, Seatbelt on macOS.",
   alternates: { canonical: "/python-sdk" },
 };
 
@@ -16,8 +16,8 @@ const quickStart = `import nono_py as nono
 # Define capabilities
 caps = nono.CapabilitySet()
 caps.allow_path("/project", nono.AccessMode.READ_WRITE)
-caps.allow_network("registry.npmjs.org")
-caps.block_network()  # deny all other network
+caps.allow_file("/home/user/.gitconfig", nono.AccessMode.READ)
+caps.block_network()  # deny all outbound connections
 
 # Apply sandbox (irrevocable)
 nono.apply(caps)
@@ -25,20 +25,20 @@ nono.apply(caps)
 # Your agent code runs here, fully sandboxed
 agent.run()`;
 
-const snapshotCode = `import nono_py as nono
+const queryCode = `import nono_py as nono
 
-# Create a pre-execution snapshot
-snapshot_id = nono.snapshot.create("/project")
+# Check platform support
+info = nono.support_info()
+print(info.platform, info.details)
 
-# Run the agent
-agent.run()
+# Build capabilities and dry-run check
+caps = nono.CapabilitySet()
+caps.allow_path("/project", nono.AccessMode.READ_WRITE)
 
-# Review changes
-diff = nono.snapshot.diff(snapshot_id)
-print(f"Files changed: {len(diff.files)}")
-
-# Undo if needed
-nono.snapshot.restore(snapshot_id)`;
+ctx = nono.QueryContext(caps)
+result = ctx.query_path("/etc/passwd", nono.AccessMode.READ)
+print(result.status)  # "denied"
+print(result.reason)  # explains why`;
 
 export default function PythonSdkPage() {
   return (
@@ -67,9 +67,17 @@ export default function PythonSdkPage() {
             </p>
             <p>
               This means your Python AI agent and every subprocess it spawns
-              operate within the defined capability set. File access, network
-              connections, and command execution are all constrained at the kernel
-              level, not by application-level checks that can be bypassed.
+              operate within the defined capability set. Filesystem access is
+              constrained at the kernel level, not by application-level checks
+              that can be bypassed. Use{" "}
+              <code className="px-1.5 py-0.5 rounded bg-code-bg border border-border font-mono text-xs">
+                QueryContext
+              </code>{" "}
+              to dry-run permission checks and{" "}
+              <code className="px-1.5 py-0.5 rounded bg-code-bg border border-border font-mono text-xs">
+                SandboxState
+              </code>{" "}
+              to serialize capability sets.
             </p>
           </div>
         </GlassCard>
@@ -80,25 +88,28 @@ export default function PythonSdkPage() {
             Filesystem Isolation
           </h3>
           <p className="text-sm text-muted leading-relaxed">
-            Define per-path access modes (read, write, execute) with fine-grained
-            control. Deny-lists prevent access to sensitive directories like
-            ~/.ssh, ~/.aws, and ~/.config regardless of the allow-list.
+            Define per-path access modes (read, write, read-write) with
+            fine-grained control. Only explicitly allowed paths are accessible
+            &mdash; everything else is denied by default at the kernel level.
           </p>
         </GlassCard>
 
         <GlassCard className="p-6" glowColor="blue" hoverable>
-          <Globe
+          <Shield
             size={20}
             className="text-accent-blue mb-4"
             strokeWidth={1.5}
           />
           <h3 className="text-lg font-semibold mb-2 tracking-tight">
-            Network Filtering
+            Network Blocking
           </h3>
           <p className="text-sm text-muted leading-relaxed">
-            Allowlist specific domains for network access. All other outbound
-            connections are blocked, including private IP ranges for SSRF
-            protection. Works with any HTTP library &mdash; requests, httpx, aiohttp.
+            Block all outbound network connections at the kernel level with{" "}
+            <code className="px-1 py-0.5 rounded bg-code-bg border border-border font-mono text-xs">
+              block_network()
+            </code>
+            . The block is enforced by Landlock (Linux) or Seatbelt (macOS) and
+            applies to all child processes.
           </p>
         </GlassCard>
 
@@ -108,9 +119,9 @@ export default function PythonSdkPage() {
           filename="sandbox.py"
         />
         <InfraCodeBlock
-          code={snapshotCode}
+          code={queryCode}
           language="python"
-          filename="snapshots.py"
+          filename="query.py"
         />
 
         <GlassCard className="md:col-span-2 p-8">
@@ -122,17 +133,17 @@ export default function PythonSdkPage() {
               {
                 icon: Lock,
                 title: "CapabilitySet",
-                desc: "Define filesystem, network, and command access rules. Composable and immutable once applied.",
+                desc: "Builder pattern for defining filesystem access, network blocking, and command rules. Irrevocable after apply().",
               },
               {
-                icon: Undo2,
-                title: "Snapshots",
-                desc: "Create and restore SHA-256 content-addressed filesystem snapshots. Review diffs programmatically.",
+                icon: Search,
+                title: "QueryContext",
+                desc: "Dry-run permission checks against a capability set. Test whether a path or network access would be allowed before applying.",
               },
               {
-                icon: Globe,
-                title: "Audit API",
-                desc: "Query the session audit trail from Python. Filter by operation type, timestamp, or disposition.",
+                icon: Shield,
+                title: "SandboxState",
+                desc: "Serialize and deserialize capability sets to JSON. Persist sandbox configurations or transfer them between processes.",
               },
             ].map((item) => (
               <div key={item.title}>

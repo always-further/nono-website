@@ -29,36 +29,32 @@ const relatedPages = [
   },
 ];
 
-const auditCode = `$ nono audit --session a1b2c3d4
+const auditCode = `$ nono audit show 20260228-143201-48291
 
-SESSION: a1b2c3d4
-STARTED: 2026-02-28T14:32:01Z
-AGENT:   claude (pid 48291)
-PROFILE: claude-code
+Session: 20260228-143201-48291
+Command: claude
+Started: 2026-02-28 14:32:01
 
-OPERATIONS:
-  14:32:03  FILE_READ    src/auth/middleware.ts
-  14:32:04  FILE_READ    package.json
-  14:32:05  FILE_WRITE   src/auth/middleware.ts
-  14:32:06  FILE_WRITE   package.json
-  14:32:07  NET_CONNECT  registry.npmjs.org:443  ALLOWED
-  14:32:08  NET_CONNECT  evil.example.com:443    DENIED
-  14:32:10  CMD_EXEC     npm install             ALLOWED
-  14:32:15  CMD_EXEC     curl http://...         DENIED
+[000] Baseline at 2026-02-28 14:32:01  (24 files, root: 7d8f3e2a1b4c5d6e)
+[001] Snapshot at 2026-02-28 14:32:15  (root: 9a3b7c1d4e5f6082)
+  ~ src/auth/middleware.ts
+  ~ package.json
+  + package-lock.json
 
-MERKLE ROOT: 7d8f3e2a1b4c5d6e...
-OPERATIONS:  8
-VIOLATIONS:  2`;
+Merkle root: 9a3b7c1d4e5f60823a7b...
+Files changed: 3`;
 
-const jsonCode = `$ nono audit --session a1b2c3d4 --format json | jq '.operations[]'
+const jsonCode = `$ nono audit show 20260228-143201-48291 --json | jq '.snapshots[1]'
 
 {
-  "timestamp": "2026-02-28T14:32:08Z",
-  "type": "NET_CONNECT",
-  "target": "evil.example.com:443",
-  "disposition": "DENIED",
-  "rule": "network.allow whitelist",
-  "hash": "a3f2e1d0..."
+  "index": 1,
+  "timestamp": "2026-02-28T14:32:15Z",
+  "merkle_root": "9a3b7c1d4e5f6082...",
+  "changes": [
+    { "path": "src/auth/middleware.ts", "type": "modified" },
+    { "path": "package.json", "type": "modified" },
+    { "path": "package-lock.json", "type": "created" }
+  ]
 }`;
 
 export default function AuditTrailPage() {

@@ -1,0 +1,88 @@
+---
+title: "How to sandbox Claude Code with nono"
+seoTitle: "How to Sandbox Claude Code: Kernel-Level Isolation with nono"
+date: "2026-02-17"
+excerpt: "Claude Code runs with your full user permissions. Every file, credential, and command is accessible. nono uses kernel-level sandboxing to enforce default-deny access with no escape hatch — setup takes 30 seconds."
+tags: ["Security", "AI Agents", "Sandboxing", "Claude Code", "nono", "Demo"]
+author: "Luke Hinds"
+published: true
+---
+
+Claude Code is one of the most capable coding agents available today. It can navigate your codebase, edit files across multiple directories, run shell commands, install packages, and execute tests — all autonomously.
+
+It also runs with your full user permissions. Every file on your system is readable. Every credential in your environment is accessible. Every command it runs executes as you.
+
+We've all seen the stories. Claude deleted my database. Claude deleted all my code. Claude wiped my home directory. These aren't hypothetical risks — they're things that happen when an agent operates with no isolation between what it wants to do and what it can do.
+
+## Permission prompts don't scale
+
+The default response to this problem has been permission dialogs. The agent wants to run a command — do you approve? The agent wants to write a file — do you approve?
+
+The issue is predictable. After the third prompt, you're clicking "allow" reflexively. Approval fatigue turns a security feature into a rubber stamp. You end up with interrupted flow *and* reduced security.
+
+Claude Code now ships with a built-in sandbox mode, which is a meaningful step forward. It uses OS-level primitives to enforce filesystem and network boundaries, reducing the need for constant approval prompts.
+
+But it includes an escape hatch. When a command fails due to sandbox restrictions, Claude can retry it outside the sandbox with the `dangerouslyDisableSandbox` parameter. The name is honest — it is dangerous. One retry outside the sandbox and the agent has full access again.
+
+## Kernel-level enforcement with no escape
+
+nono takes a different approach. It uses Landlock (Linux) and Seatbelt (macOS) to enforce restrictions at the kernel level. Once applied, these restrictions are irreversible for the process. There is no API to widen them. There is no escape hatch. Not even nono itself can remove the restrictions after they're set.
+
+This is what we mean by "structurally impossible." The kernel denies unauthorised operations directly. There's no interception layer, no policy filter, no mechanism to bypass. If the agent tries to read your SSH keys or delete files outside its granted path, the operation fails at the syscall level.
+
+## Live demo: sandboxing Claude Code
+
+We recorded a short demo showing exactly what this looks like in practice.
+
+<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/d6Y8S-tzJ0U" title="Securing Claude Code Agents with nono — Live Demo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+
+In the video, we install nono via Homebrew, launch Claude Code inside a nono sandbox using the built-in Claude profile, and then attempt to trick the agent into doing things it shouldn't:
+
+**Reading AWS credentials** — we ask Claude to access a confidential file used for AWS account access. The operation is immediately denied. Claude is aware it's running inside a nono sandbox and tells the user how to explicitly grant access if needed.
+
+**Deleting a database** — we start with an innocent-sounding question, then escalate to asking Claude to delete a database. Claude attempts to access a directory outside its granted boundary. The kernel blocks it. Claude helpfully explains what happened and how to widen permissions if the user genuinely wants to.
+
+The whole setup takes about 30 seconds. Install via Homebrew, wrap your Claude Code session with nono, done.
+
+## Getting started
+
+Install nono:
+
+```bash
+brew tap always-further/nono
+brew install nono
+```
+
+Launch Claude Code inside a sandbox using the built-in profile:
+
+```bash
+nono run --allow-cwd --profile claude-code -- claude
+```
+
+That's it. Claude Code now runs with default-deny filesystem access. Only the current directory is writable. SSH keys, AWS credentials, system configs — all blocked at the kernel level.
+
+If you want to run silently without the nono banner:
+
+```bash
+nono run --allow-cwd --silent --profile claude-code -- claude
+```
+
+For more granular control:
+
+```bash
+# Read-only access to reference docs, write access to project
+nono run --read ~/docs --write ./src --profile claude-code -- claude
+
+# Check why a specific path would be blocked
+nono why --path ~/.ssh/id_rsa --op read
+```
+
+## What's next
+
+nono is free, open source, and available today. We're actively developing fine-grained network controls, atomic rollbacks, and library bindings for Python, TypeScript, and Rust so other tools can integrate nono's security primitives directly.
+
+- **Docs**: [docs.nono.sh](https://docs.nono.sh)
+- **GitHub**: [github.com/always-further/nono](https://github.com/always-further/nono)
+- **Discord**: [Join the community](https://discord.gg/pPcjYzGvbS)
+
+Don't yolo when you can nono.

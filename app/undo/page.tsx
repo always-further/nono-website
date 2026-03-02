@@ -29,21 +29,20 @@ const relatedPages = [
   },
 ];
 
-const snapshotCode = `$ nono run --allow ~/projects/myapp -- claude
+const snapshotCode = `$ nono run --rollback --allow ~/projects/myapp -- claude
 
 # Agent makes changes...
-# nono automatically captures before/after snapshots
+# nono captures before/after snapshots automatically
 
-$ nono sessions list
-SESSION ID    DATE                  FILES CHANGED
-a1b2c3d4      2026-02-28 14:32:01   12
-e5f6g7h8      2026-02-28 10:15:44   3
+$ nono rollback list
+SESSION ID                  COMMAND   FILES CHANGED
+20260228-143201-48291       claude    12
+20260228-101544-31072       claude    3
 
-$ nono undo a1b2c3d4
-Restored 12 files to pre-session state.
-SHA-256: 9f86d081884c7d659a2feaa0c55ad015...`;
+$ nono rollback restore 20260228-143201-48291
+Restored 12 files to pre-session state.`;
 
-const diffCode = `$ nono diff a1b2c3d4
+const diffCode = `$ nono rollback show 20260228-143201-48291 --diff
 
 --- a/src/auth/middleware.ts
 +++ b/src/auth/middleware.ts
@@ -87,7 +86,7 @@ export default function UndoPage() {
               session ends, a second snapshot records the final state. The diff
               between snapshots tells you exactly what changed, and{" "}
               <code className="px-1.5 py-0.5 rounded bg-code-bg border border-border font-mono text-xs">
-                nono undo
+                nono rollback restore
               </code>{" "}
               restores the original state atomically.
             </p>

@@ -4,8 +4,8 @@ import { useState } from "react";
 import { Copy, Check } from "lucide-react";
 
 const tabs = [
-  { label: "macOS / Linux", command: "curl -fsSL https://nono.sh/install | sh" },
   { label: "Homebrew", command: "brew install always-further/tap/nono" },
+  { label: "Crates", command: "cargo install nono-cli" },
 ] as const;
 
 export function InstallSnippet() {

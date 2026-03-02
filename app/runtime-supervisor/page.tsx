@@ -7,7 +7,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Runtime Supervisor - Dynamic Permission Expansion | nono",
   description:
-    "Dynamic permission expansion via Unix socket IPC and seccomp-notify. Approve, deny, or inject credentials at runtime without restarting the agent.",
+    "Dynamic permission expansion via seccomp-notify on Linux. Approve, deny, or inject credentials at runtime without restarting the agent.",
   alternates: { canonical: "/runtime-supervisor" },
 };
 
@@ -29,48 +29,42 @@ const relatedPages = [
   },
 ];
 
-const supervisorCode = `{
-  "supervisor": {
-    "socket": "/tmp/nono-supervisor.sock",
-    "capabilities": {
-      "file_expansion": {
-        "prompt": "terminal",
-        "allow_patterns": ["~/projects/**"],
-        "deny_patterns": ["~/.ssh/**", "~/.aws/**"]
-      },
-      "network_expansion": {
-        "prompt": "terminal",
-        "allow_patterns": ["*.npmjs.org", "*.github.com"]
-      },
-      "credential_injection": {
-        "source": "keychain",
-        "env_prefix": "NONO_SECRET_"
-      }
-    }
-  }
-}`;
+const supervisorCode = `# Enable supervised mode with capability expansion
+$ nono run --supervised --allow ~/projects/myapp -- claude
+
+# Combine with credential injection via reverse proxy
+$ nono run --supervised \\
+    --allow ~/projects/myapp \\
+    --proxy-credential openai \\
+    --proxy-credential anthropic \\
+    -- claude
+
+# Or inject credentials as environment variables
+$ nono run --supervised \\
+    --allow ~/projects/myapp \\
+    --env-credential openai_api_key,anthropic_api_key \\
+    -- claude`;
 
 const ipcCode = `# Agent requests access to a new file
-# nono intercepts via seccomp-notify (Linux)
-# or Seatbelt extension point (macOS)
+# nono intercepts via seccomp-notify on openat/openat2
 
-[nono supervisor] Agent requests: FILE_WRITE ~/projects/other/config.yaml
+[nono] Agent requests: FILE_WRITE ~/projects/other/config.yaml
 
   Approve? [y/N/always] y
 
-[nono supervisor] Expanding sandbox to include:
+[nono] Expanding sandbox to include:
   ~/projects/other/config.yaml (write)
   Session-scoped. Will not persist after session ends.
 
-# On Linux, seccomp-notify passes the file descriptor
-# directly - no retry logic needed in the agent.`;
+# seccomp-notify passes the file descriptor directly
+# via SCM_RIGHTS - no retry logic needed in the agent.`;
 
 export default function RuntimeSupervisorPage() {
   return (
     <InfraPageLayout
       title="Dynamic Permission Expansion"
       tagline="Runtime Supervisor"
-      description="Approve, deny, or inject credentials at runtime via Unix socket IPC. On Linux, seccomp-notify enables transparent file descriptor passing so agents access new resources without retry logic."
+      description="Approve, deny, or inject credentials at runtime. On Linux, seccomp-notify intercepts system calls and enables transparent file descriptor passing so agents access new resources without retry logic."
       relatedPages={relatedPages}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -122,16 +116,18 @@ export default function RuntimeSupervisorPage() {
           </h3>
           <p className="text-sm text-muted leading-relaxed">
             Secrets are loaded from the system keystore (macOS Keychain, Linux
-            Secret Service) and injected as environment variables or via the
-            network proxy. The agent never touches raw API tokens or credentials.
-            Secrets are zeroised from memory when the session ends.
+            Secret Service) and injected via a reverse proxy
+            (<code className="px-1 py-0.5 rounded bg-code-bg border border-border font-mono text-xs">--proxy-credential</code>)
+            or as environment variables
+            (<code className="px-1 py-0.5 rounded bg-code-bg border border-border font-mono text-xs">--env-credential</code>).
+            The reverse proxy approach ensures the agent never sees raw API tokens.
           </p>
         </GlassCard>
 
         <InfraCodeBlock
           code={supervisorCode}
-          language="json"
-          filename="profiles/supervisor.json"
+          language="bash"
+          filename="terminal"
         />
         <InfraCodeBlock code={ipcCode} language="bash" filename="terminal" />
 

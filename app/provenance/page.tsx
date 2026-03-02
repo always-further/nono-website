@@ -24,34 +24,50 @@ const relatedPages = [
   },
 ];
 
-const signCode = `# Sign instruction files with Sigstore
-$ nono sign CLAUDE.md AGENT.md
+const signCode = `# Sign instruction files with Sigstore keyless signing
+$ nono trust sign --keyless CLAUDE.md AGENT.md
 
 Signing CLAUDE.md...
-  Identity: luke@alwaysfurther.ai (OIDC)
+  Identity: token.actions.githubusercontent.com (OIDC)
   Signed with Fulcio ephemeral certificate
   Uploaded to Rekor transparency log
   Entry: rekor.sigstore.dev/api/v1/log/entries/...
 
 Signing AGENT.md...
-  Identity: luke@alwaysfurther.ai (OIDC)
+  Identity: token.actions.githubusercontent.com (OIDC)
   Signed with Fulcio ephemeral certificate
   Uploaded to Rekor transparency log
 
 2 files signed successfully.`;
 
+const trustPolicyCode = `{
+  "version": 1,
+  "instruction_patterns": ["SKILLS.md", "scripts/skill_script.py"],
+  "publishers": [
+    {
+      "name": "github-ci",
+      "issuer": "https://token.actions.githubusercontent.com",
+      "repository": "myorg/agent-skills",
+      "workflow": ".github/workflows/agent-skills.yml",
+      "ref_pattern": "refs/heads/main"
+    }
+  ],
+  "blocklist": {"digests": ["sha256:abc123...", "sha256:def456..."]},
+  "enforcement": "deny"
+}`;
+
 const verifyCode = `# nono automatically verifies at runtime
 $ nono run --profile claude-code -- claude
 
 Verifying instruction files...
-  CLAUDE.md: VERIFIED (luke@alwaysfurther.ai)
-  AGENT.md:  VERIFIED (luke@alwaysfurther.ai)
+  CLAUDE.md: VERIFIED
+  AGENT.md:  VERIFIED
   SKILLS.md: UNSIGNED - BLOCKED
 
 Error: SKILLS.md is not signed by a trusted identity.
-  Expected signers: luke@alwaysfurther.ai
-  Run 'nono sign SKILLS.md' to sign, or add
-  --trust-unsigned to bypass (not recommended).`;
+  Expected signers: token.actions.githubusercontent.com
+  Run 'nono trust sign SKILLS.md' to sign, or add
+  --trust-override to bypass (not recommended).`;
 
 export default function ProvenancePage() {
   return (
@@ -137,15 +153,20 @@ export default function ProvenancePage() {
               <h3 className="text-lg font-semibold mb-2 tracking-tight">
                 Trust policy
               </h3>
-              <p className="text-sm text-muted leading-relaxed">
+              <p className="text-sm text-muted leading-relaxed mb-6">
                 nono&apos;s trust policy defines which OIDC identities are authorized
                 to sign instruction files. This is configured per-profile and
-                supports exact email matches, domain wildcards, and GitHub
-                organization constraints. Unsigned files or files signed by
-                untrusted identities are blocked before the agent process starts.
+                supports org, repo, and workflow constraints. Unsigned files or
+                files signed by untrusted identities are blocked before the agent
+                process starts.
               </p>
             </div>
           </div>
+          <InfraCodeBlock
+            code={trustPolicyCode}
+            language="json"
+            filename="trust-policy.json"
+          />
         </GlassCard>
       </div>
     </InfraPageLayout>

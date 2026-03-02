@@ -93,8 +93,6 @@ const sdkDropdown: DropdownItem[] = [
 const navItems: NavItem[] = [
   { label: "Infrastructure", dropdown: infraDropdown },
   { label: "SDKs", dropdown: sdkDropdown },
-  { label: "Guides", href: "/guides" },
-  { label: "Academy", href: "/academy" },
   { label: "Blog", href: "/blog" },
   { label: "Docs", href: "/docs" },
 ];

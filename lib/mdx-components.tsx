@@ -15,18 +15,22 @@ export function getMdxComponents(): MDXComponents {
     h4: (props) => <Anchor level={4} {...props} />,
     img: BlogImage as MDXComponents["img"],
     table: ({ children }) => (
-      <div className="my-6 overflow-x-auto rounded-xl border border-border">
-        <table className="w-full text-sm">{children}</table>
+      <div className="my-6 overflow-x-auto rounded-xl border border-border bg-[rgba(255,255,255,0.02)]">
+        <table className="w-full text-sm border-collapse">{children}</table>
       </div>
     ),
     thead: ({ children }) => (
-      <thead className="bg-[rgba(255,255,255,0.04)] border-b border-border">{children}</thead>
+      <thead className="bg-[rgba(255,255,255,0.05)] border-b border-border">{children}</thead>
     ),
     th: ({ children }) => (
-      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-strong">{children}</th>
+      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-foreground/70">{children}</th>
+    ),
+    tbody: ({ children }) => <tbody>{children}</tbody>,
+    tr: ({ children }) => (
+      <tr className="border-b border-border last:border-b-0">{children}</tr>
     ),
     td: ({ children }) => (
-      <td className="px-4 py-3 border-t border-border text-muted">{children}</td>
+      <td className="px-4 py-3 text-muted-strong">{children}</td>
     ),
     blockquote: ({ children }) => (
       <blockquote className="border-l-2 border-accent pl-6 my-6 text-muted italic">
