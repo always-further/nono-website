@@ -1,8 +1,6 @@
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Pillars from "@/components/Pillars";
-import HowItWorks from "@/components/HowItWorks";
-import DeveloperWorkflow from "@/components/DeveloperWorkflow";
 import SdkPreview from "@/components/SdkPreview";
 import Testimonials from "@/components/Testimonials";
 import CtaBanner from "@/components/CtaBanner";
@@ -20,9 +18,6 @@ export default function Home() {
         <Hero />
         <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
         <Pillars />
-        <HowItWorks />
-        <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-        <DeveloperWorkflow />
         <SdkPreview />
         <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
         <Testimonials testimonials={testimonialItems} />

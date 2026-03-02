@@ -49,17 +49,8 @@ const columns: FooterColumn[] = [
     ],
   },
   {
-    title: "Guides",
-    links: [
-      { label: "Safe AI Agent Execution", href: "/guides/safe-ai-agent-execution" },
-      { label: "Undo for AI Agents", href: "/guides/undo-for-ai-agents" },
-      { label: "Runtime Governance", href: "/guides/runtime-governance-ai" },
-    ],
-  },
-  {
     title: "Resources",
     links: [
-      { label: "Academy", href: "/academy" },
       { label: "Blog", href: "/blog" },
       { label: "Docs", href: "/docs" },
       {
@@ -76,7 +67,7 @@ export default function Footer() {
     <footer className="py-16 px-6 border-t border-border">
       <div className="max-w-6xl mx-auto">
         {/* Sitemap columns */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-16">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
           {columns.map((col) => (
             <div key={col.title}>
               <h3 className="text-sm font-semibold text-foreground mb-4">
@@ -124,15 +115,6 @@ export default function Footer() {
                 width={130}
                 height={27}
               />
-            </a>
-            <span className="text-border-strong">|</span>
-            <a
-              href="https://alwaysfurther.ai/blog?utm_source=nono-sh"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-muted hover:text-foreground transition-colors"
-            >
-              Learn about AI agent security
             </a>
           </div>
 
