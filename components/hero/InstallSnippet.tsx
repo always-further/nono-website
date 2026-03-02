@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Copy, Check } from "lucide-react";
 
 const tabs = [
-  { label: "Homebrew", command: "brew install always-further/tap/nono" },
+  { label: "Homebrew", command: "brew tap always-further/nono && brew install nono" },
   { label: "Crates", command: "cargo install nono-cli" },
 ] as const;
 
