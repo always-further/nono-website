@@ -9,7 +9,7 @@ import { TextScramble } from "@/components/hero/TextScramble";
 
 export default function Hero() {
   return (
-    <section className="relative pt-28 pb-24 px-6 overflow-hidden min-h-[90vh] flex items-center">
+    <section className="relative pt-28 pb-24 px-6 overflow-hidden ">
       <AnimatedBackground variant="hero" />
 
       {/* Radial vignette */}
@@ -21,14 +21,6 @@ export default function Hero() {
       />
 
       <div className="relative z-10 max-w-5xl mx-auto w-full text-center">
-        <a
-          href="https://alwaysfurther.ai?utm_source=nono-sh"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-3 mb-10 opacity-60 hover:opacity-100 transition-opacity"
-        >
-          <Image src="/af-logo.svg" alt="Always Further" width={140} height={29} />
-        </a>
 
         <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold tracking-tighter mb-2 text-foreground">
           <TextScramble text="nono" delay={200} scrambleDuration={1000} glitch />

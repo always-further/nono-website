@@ -6,10 +6,17 @@ import Footer from "@/components/Footer";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Blog - nono",
+  title: "Blog",
   description:
     "Technical writing on AI agent security, sandboxing, and kernel-level isolation.",
   alternates: { canonical: "/blog" },
+  openGraph: {
+    title: "Blog",
+    description:
+      "Technical writing on AI agent security, sandboxing, and kernel-level isolation.",
+    type: "website",
+    images: [{ url: "/logo.png", width: 1200, height: 630, alt: "nono" }],
+  },
 };
 
 export default function BlogIndexPage() {

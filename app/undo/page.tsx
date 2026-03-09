@@ -5,10 +5,17 @@ import { Undo2, Database, GitCompare } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Undo & Rollback - Atomic Filesystem Snapshots | nono",
+  title: "Undo & Rollback - Atomic Filesystem Snapshots",
   description:
     "SHA-256 content-addressed snapshots capture filesystem state before and after AI agent execution. Restore any session with a single command.",
   alternates: { canonical: "/undo" },
+  openGraph: {
+    title: "Undo & Rollback - Atomic Filesystem Snapshots",
+    description:
+      "SHA-256 content-addressed snapshots capture filesystem state before and after AI agent execution. Restore any session with a single command.",
+    type: "website",
+    images: [{ url: "/logo.png", width: 1200, height: 630, alt: "nono" }],
+  },
 };
 
 const relatedPages = [

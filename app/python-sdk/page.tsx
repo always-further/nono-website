@@ -5,10 +5,17 @@ import { Lock, Shield, Search } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Python SDK - Runtime Safety for Python AI Agents | nono",
+  title: "Python SDK - Runtime Safety for Python AI Agents",
   description:
     "Enforce kernel-level filesystem isolation from Python with nono-py. Landlock on Linux, Seatbelt on macOS.",
   alternates: { canonical: "/python-sdk" },
+  openGraph: {
+    title: "Python SDK - Runtime Safety for Python AI Agents",
+    description:
+      "Enforce kernel-level filesystem isolation from Python with nono-py. Landlock on Linux, Seatbelt on macOS.",
+    type: "website",
+    images: [{ url: "/logo.png", width: 1200, height: 630, alt: "nono" }],
+  },
 };
 
 const quickStart = `import nono_py as nono

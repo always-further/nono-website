@@ -6,10 +6,17 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Linux Sandbox - Kernel-Level Isolation for AI Agents | nono",
+  title: "Linux Sandbox - Kernel-Level Isolation for AI Agents",
   description:
     "How nono uses Linux Landlock and macOS Seatbelt to create irrevocable, kernel-enforced sandboxes for AI coding agents.",
   alternates: { canonical: "/linux-sandbox" },
+  openGraph: {
+    title: "Linux Sandbox - Kernel-Level Isolation for AI Agents",
+    description:
+      "How nono uses Linux Landlock and macOS Seatbelt to create irrevocable, kernel-enforced sandboxes for AI coding agents.",
+    type: "website",
+    images: [{ url: "/logo.png", width: 1200, height: 630, alt: "nono" }],
+  },
 };
 
 const relatedPages = [

@@ -5,10 +5,14 @@ import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import WebSiteSchema from "@/components/structured-data/WebSiteSchema";
 import SoftwareApplicationSchema from "@/components/structured-data/SoftwareApplicationSchema";
+import OrganizationSchema from "@/components/structured-data/OrganizationSchema";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://nono.sh"),
-  title: "nono - Next-Generation Agent Security",
+  title: {
+    default: "Next-Generation Agent Security | nono",
+    template: "%s | nono",
+  },
   description:
     "Kernel-enforced isolation, network filtering, immutable auditing, and atomic rollbacks for AI agents - built into the nono CLI and native SDKs.",
   keywords: [
@@ -26,11 +30,16 @@ export const metadata: Metadata = {
     "SSRF protection",
     "AI agent network security",
   ],
+  icons: {
+    icon: [
+      { url: "/nono-square.svg", type: "image/svg+xml" },
+    ],
+  },
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: "nono - Next-Generation Agent Security",
+    title: "Next-Generation Agent Security | nono",
     description:
       "Kernel-enforced isolation, network filtering, immutable auditing, and atomic rollbacks for AI agents - built into the nono CLI and native SDKs.",
     type: "website",
@@ -46,9 +55,10 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "nono - Next-Generation Agent Security",
+    title: "Next-Generation Agent Security | nono",
     description:
       "Kernel-enforced isolation, network filtering, immutable auditing, and atomic rollbacks for AI agents - built into the nono CLI and native SDKs.",
+    site: "@alwaysfurtherAI",
     images: ["/logo.png"],
   },
 };
@@ -61,6 +71,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <OrganizationSchema />
         <WebSiteSchema />
         <SoftwareApplicationSchema />
       </head>
