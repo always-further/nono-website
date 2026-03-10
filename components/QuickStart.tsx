@@ -6,8 +6,7 @@ import { Check, Copy, Apple, Monitor } from "lucide-react";
 const codeExamples = [
   {
     label: "macOS (Homebrew)",
-    code: `brew tap always-further/nono
-brew tap always-further/nono && brew install nono`,
+    code: `brew install nono`,
   },
   {
     label: "Source",
