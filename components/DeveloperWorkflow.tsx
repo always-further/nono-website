@@ -9,7 +9,7 @@ const steps = [
   {
     number: "01",
     title: "Install",
-    code: "brew tap always-further/nono && brew install nono",
+    code: "brew install nono",
   },
   {
     number: "02",
