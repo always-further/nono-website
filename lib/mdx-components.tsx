@@ -63,6 +63,18 @@ export function getMdxComponents(): MDXComponents {
       </ol>
     ),
     li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+    iframe: (props: React.IframeHTMLAttributes<HTMLIFrameElement>) => (
+      <div className="my-8 p-4 aspect-video w-full max-w-2xl">
+        <iframe
+          src={props.src}
+          title={props.title}
+          allow={props.allow}
+          loading={props.loading as "lazy" | "eager" | undefined}
+          allowFullScreen
+          className="w-full h-full rounded-lg border border-border"
+        />
+      </div>
+    ),
     hr: () => <hr className="border-border my-8" />,
     a: ({ href, children }) => (
       <a
