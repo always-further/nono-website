@@ -5,10 +5,17 @@ import { Shield, KeyRound, Workflow } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Runtime Supervisor - Dynamic Permission Expansion | nono",
+  title: "Runtime Supervisor - Dynamic Permission Expansion",
   description:
     "Dynamic permission expansion via seccomp-notify on Linux. Approve, deny, or inject credentials at runtime without restarting the agent.",
   alternates: { canonical: "/runtime-supervisor" },
+  openGraph: {
+    title: "Runtime Supervisor - Dynamic Permission Expansion",
+    description:
+      "Dynamic permission expansion via seccomp-notify on Linux. Approve, deny, or inject credentials at runtime without restarting the agent.",
+    type: "website",
+    images: [{ url: "/logo.png", width: 1200, height: 630, alt: "nono" }],
+  },
 };
 
 const relatedPages = [

@@ -5,10 +5,17 @@ import { ScrollText, ShieldCheck, FileJson } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Cryptographic Audit Trail - Immutable Session Logs | nono",
+  title: "Cryptographic Audit Trail - Immutable Session Logs",
   description:
     "Merkle tree commitments over every agent operation. Cryptographically verify that no file was altered outside the sandbox. Tamper-evident by construction.",
   alternates: { canonical: "/audit-trail" },
+  openGraph: {
+    title: "Cryptographic Audit Trail - Immutable Session Logs",
+    description:
+      "Merkle tree commitments over every agent operation. Cryptographically verify that no file was altered outside the sandbox. Tamper-evident by construction.",
+    type: "website",
+    images: [{ url: "/logo.png", width: 1200, height: 630, alt: "nono" }],
+  },
 };
 
 const relatedPages = [

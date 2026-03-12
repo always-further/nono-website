@@ -5,10 +5,17 @@ import { Lock, Shield, Search } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "TypeScript SDK - Runtime Safety for TypeScript AI Agents | nono",
+  title: "TypeScript SDK - Runtime Safety for TypeScript AI Agents",
   description:
     "Enforce kernel-level filesystem isolation from TypeScript with nono-ts. Landlock on Linux, Seatbelt on macOS.",
   alternates: { canonical: "/typescript-sdk" },
+  openGraph: {
+    title: "TypeScript SDK - Runtime Safety for TypeScript AI Agents",
+    description:
+      "Enforce kernel-level filesystem isolation from TypeScript with nono-ts. Landlock on Linux, Seatbelt on macOS.",
+    type: "website",
+    images: [{ url: "/logo.png", width: 1200, height: 630, alt: "nono" }],
+  },
 };
 
 const quickStart = `import { CapabilitySet, AccessMode, apply } from 'nono-ts';

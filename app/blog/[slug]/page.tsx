@@ -9,6 +9,7 @@ import { RelatedPosts } from "@/components/blog/RelatedPosts";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BlogPostSchema from "@/components/structured-data/BlogPostSchema";
+import BreadcrumbSchema from "@/components/structured-data/BreadcrumbSchema";
 import type { Metadata } from "next";
 
 interface PageProps {
@@ -26,7 +27,7 @@ export async function generateMetadata({
   try {
     const post = getPostBySlug(slug);
     return {
-      title: `${post.title} - nono`,
+      title: post.title,
       description: post.description,
       alternates: { canonical: `/blog/${slug}` },
       openGraph: {
@@ -40,7 +41,7 @@ export async function generateMetadata({
       },
     };
   } catch {
-    return { title: "Post Not Found - nono" };
+    return { title: "Post Not Found" };
   }
 }
 
@@ -72,6 +73,10 @@ export default async function BlogPostPage({ params }: PageProps) {
     <>
       <Header />
       <BlogPostSchema post={post} />
+      <BreadcrumbSchema items={[
+        { name: "Blog", href: "/blog" },
+        { name: post.title, href: `/blog/${slug}` },
+      ]} />
       <main className="pt-24 pb-24 px-6">
         <div className="max-w-3xl mx-auto">
           <PostHeader post={post} />

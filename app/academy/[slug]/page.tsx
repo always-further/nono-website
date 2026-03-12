@@ -8,6 +8,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import { Clock, Signal } from "lucide-react";
+import BreadcrumbSchema from "@/components/structured-data/BreadcrumbSchema";
 import type { Metadata } from "next";
 
 interface PageProps {
@@ -25,12 +26,19 @@ export async function generateMetadata({
   try {
     const lesson = getLessonBySlug(slug);
     return {
-      title: `${lesson.title} - nono Academy`,
+      title: lesson.title,
       description: lesson.description,
       alternates: { canonical: `/academy/${slug}` },
+      openGraph: {
+        title: lesson.title,
+        description: lesson.description,
+        type: "article",
+        publishedTime: lesson.date,
+        images: [{ url: "/logo.png" }],
+      },
     };
   } catch {
-    return { title: "Lesson Not Found - nono Academy" };
+    return { title: "Lesson Not Found" };
   }
 }
 
@@ -65,6 +73,10 @@ export default async function LessonPage({ params }: PageProps) {
   return (
     <>
       <Header />
+      <BreadcrumbSchema items={[
+        { name: "Academy", href: "/academy" },
+        { name: lesson.title, href: `/academy/${slug}` },
+      ]} />
       <main className="pt-24 pb-24 px-6">
         <div className="max-w-3xl mx-auto">
           {/* Breadcrumb */}

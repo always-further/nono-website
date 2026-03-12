@@ -8,10 +8,17 @@ import { Clock, ArrowRight, Signal } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Academy - nono",
+  title: "Academy",
   description:
     "Learn about AI agent security, sandboxing, and runtime governance through structured educational content.",
   alternates: { canonical: "/academy" },
+  openGraph: {
+    title: "Academy",
+    description:
+      "Learn about AI agent security, sandboxing, and runtime governance through structured educational content.",
+    type: "website",
+    images: [{ url: "/logo.png", width: 1200, height: 630, alt: "nono" }],
+  },
 };
 
 const difficultyColor = {

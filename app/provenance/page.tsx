@@ -5,10 +5,17 @@ import { Fingerprint, ShieldAlert, Eye } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Supply Chain Provenance - Sigstore Signing for AI Agents | nono",
+  title: "Supply Chain Provenance - Sigstore Signing for AI Agents",
   description:
     "Sigstore-based signing and verification of AI agent instruction files. Unsigned instruction files are blocked at the kernel level.",
   alternates: { canonical: "/provenance" },
+  openGraph: {
+    title: "Supply Chain Provenance - Sigstore Signing for AI Agents",
+    description:
+      "Sigstore-based signing and verification of AI agent instruction files. Unsigned instruction files are blocked at the kernel level.",
+    type: "website",
+    images: [{ url: "/logo.png", width: 1200, height: 630, alt: "nono" }],
+  },
 };
 
 const relatedPages = [

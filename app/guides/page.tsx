@@ -8,10 +8,17 @@ import { Clock, ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Guides - nono",
+  title: "Guides",
   description:
     "Long-form guides on AI agent security, sandboxing, undo, and runtime governance.",
   alternates: { canonical: "/guides" },
+  openGraph: {
+    title: "Guides",
+    description:
+      "Long-form guides on AI agent security, sandboxing, undo, and runtime governance.",
+    type: "website",
+    images: [{ url: "/logo.png", width: 1200, height: 630, alt: "nono" }],
+  },
 };
 
 export default function GuidesIndexPage() {

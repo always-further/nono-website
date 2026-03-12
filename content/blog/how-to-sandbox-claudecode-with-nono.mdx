@@ -2,6 +2,7 @@
 title: "How to sandbox Claude Code with nono"
 seoTitle: "How to Sandbox Claude Code: Kernel-Level Isolation with nono"
 date: "2026-02-17"
+description: "Learn how to sandbox Claude Code with nono's kernel-level isolation. Enforce default-deny filesystem access with Landlock and Seatbelt in 30 seconds."
 excerpt: "Claude Code runs with your full user permissions. Every file, credential, and command is accessible. nono uses kernel-level sandboxing to enforce default-deny access with no escape hatch — setup takes 30 seconds."
 tags: ["Security", "AI Agents", "Sandboxing", "Claude Code", "nono", "Demo"]
 author: "Luke Hinds"
@@ -34,7 +35,7 @@ This is what we mean by "structurally impossible." The kernel denies unauthorise
 
 We recorded a short demo showing exactly what this looks like in practice.
 
-<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/d6Y8S-tzJ0U" title="Securing Claude Code Agents with nono — Live Demo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/d6Y8S-tzJ0U" title="Securing Claude Code Agents with nono — Live Demo" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen loading="lazy"></iframe>
 
 In the video, we install nono via Homebrew, launch Claude Code inside a nono sandbox using the built-in Claude profile, and then attempt to trick the agent into doing things it shouldn't:
 

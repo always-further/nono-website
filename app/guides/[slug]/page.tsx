@@ -8,6 +8,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import { Clock } from "lucide-react";
+import BreadcrumbSchema from "@/components/structured-data/BreadcrumbSchema";
 import type { Metadata } from "next";
 
 interface PageProps {
@@ -25,12 +26,19 @@ export async function generateMetadata({
   try {
     const guide = getGuideBySlug(slug);
     return {
-      title: `${guide.title} - nono`,
+      title: guide.title,
       description: guide.description,
       alternates: { canonical: `/guides/${slug}` },
+      openGraph: {
+        title: guide.title,
+        description: guide.description,
+        type: "article",
+        publishedTime: guide.date,
+        images: [{ url: "/logo.png" }],
+      },
     };
   } catch {
-    return { title: "Guide Not Found - nono" };
+    return { title: "Guide Not Found" };
   }
 }
 
@@ -59,6 +67,10 @@ export default async function GuidePage({ params }: PageProps) {
   return (
     <>
       <Header />
+      <BreadcrumbSchema items={[
+        { name: "Guides", href: "/guides" },
+        { name: guide.title, href: `/guides/${slug}` },
+      ]} />
       <main className="pt-24 pb-24 px-6">
         <div className="max-w-3xl mx-auto">
           {/* Breadcrumb */}
