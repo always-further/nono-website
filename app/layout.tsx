@@ -88,7 +88,9 @@ export default function RootLayout({
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-T3KTDBM474');
+            gtag('config', 'G-T3KTDBM474', {
+              page_location: window.location.href
+            });
           `}
         </Script>
         <Script id="posthog" strategy="afterInteractive">
@@ -98,18 +100,17 @@ export default function RootLayout({
                 api_host: 'https://eu.i.posthog.com',
                 defaults: '2025-11-30',
                 person_profiles: 'identified_only',
+                loaded: function() {
+                  // Clean up tracking parameters from URL after analytics capture
+                  var url = new URL(window.location.href);
+                  var trackingParams = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'utm_id', '_gl'];
+                  var hasTracking = trackingParams.some(function(p) { return url.searchParams.has(p); });
+                  if (hasTracking) {
+                    trackingParams.forEach(function(p) { url.searchParams.delete(p); });
+                    window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+                  }
+                },
             });
-
-            // Clean up tracking parameters from URL after analytics capture
-            (function() {
-              var url = new URL(window.location.href);
-              var trackingParams = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'utm_id', '_gl'];
-              var hasTracking = trackingParams.some(function(p) { return url.searchParams.has(p); });
-              if (hasTracking) {
-                trackingParams.forEach(function(p) { url.searchParams.delete(p); });
-                window.history.replaceState({}, '', url.pathname + url.search + url.hash);
-              }
-            })();
           `}
         </Script>
       </body>
