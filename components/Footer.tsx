@@ -85,6 +85,13 @@ export default function Footer() {
                       >
                         {link.label}
                       </a>
+                    ) : link.href.startsWith("/docs") ? (
+                      <a
+                        href={link.href}
+                        className="text-sm text-muted hover:text-foreground transition-colors"
+                      >
+                        {link.label}
+                      </a>
                     ) : (
                       <Link
                         href={link.href}

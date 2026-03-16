@@ -167,6 +167,18 @@ export default function Header() {
                 </button>
                 <DropdownMenu items={item.dropdown} />
               </div>
+            ) : item.href!.startsWith("/docs") ? (
+              <a
+                key={item.label}
+                href={item.href!}
+                className={`px-3 py-2 text-sm rounded-lg transition-colors ${
+                  isActive(item)
+                    ? "text-foreground"
+                    : "text-muted hover:text-foreground"
+                }`}
+              >
+                {item.label}
+              </a>
             ) : (
               <Link
                 key={item.label}
@@ -251,6 +263,15 @@ export default function Header() {
                     </div>
                   )}
                 </div>
+              ) : item.href!.startsWith("/docs") ? (
+                <a
+                  key={item.label}
+                  href={item.href!}
+                  className="py-2 text-muted hover:text-foreground transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item.label}
+                </a>
               ) : (
                 <Link
                   key={item.label}

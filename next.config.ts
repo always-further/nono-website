@@ -79,7 +79,7 @@ const docsSecurityHeaders = [
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://eu.i.posthog.com https://eu-assets.i.posthog.com",
       "style-src 'self' 'unsafe-inline' https://d4tuoctqmanu0.cloudfront.net https://fonts.googleapis.com",
       "img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com https://mintcdn.com https://*.mintcdn.com https://d3gk2c5xim1je2.cloudfront.net https://cdn.jsdelivr.net https://mintlify.s3.us-west-1.amazonaws.com",
-      "font-src 'self' https://cdn.jsdelivr.net https://d4tuoctqmanu0.cloudfront.net https://fonts.googleapis.com",
+      "font-src 'self' https://cdn.jsdelivr.net https://d4tuoctqmanu0.cloudfront.net https://fonts.googleapis.com https://fonts.cdnfonts.com",
       "connect-src 'self' https://www.google-analytics.com https://eu.i.posthog.com https://eu-assets.i.posthog.com https://api.mintlifytrieve.com https://*.mintlify.dev https://*.mintlify.com https://d1ctpt7j8wusba.cloudfront.net https://mintcdn.com https://*.mintcdn.com https://leaves.mintlify.com",
       "frame-src 'self' https://*.mintlify.dev",
       "frame-ancestors 'none'",

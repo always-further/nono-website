@@ -92,17 +92,29 @@ export function SdkPageLayout({
                   label: "Getting Started Guide",
                   desc: "End-to-end walkthrough",
                 },
-              ].map((item) => (
-                <Link key={item.href} href={item.href}>
-                  <GlassCard hoverable className="p-6 h-full">
-                    <h3 className="font-semibold mb-1">{item.label}</h3>
-                    <p className="text-sm text-muted mb-3">{item.desc}</p>
-                    <span className="text-xs text-accent flex items-center gap-1">
-                      Learn more <ArrowRight size={12} />
-                    </span>
-                  </GlassCard>
-                </Link>
-              ))}
+              ].map((item) =>
+                item.href.startsWith("/docs") ? (
+                  <a key={item.href} href={item.href}>
+                    <GlassCard hoverable className="p-6 h-full">
+                      <h3 className="font-semibold mb-1">{item.label}</h3>
+                      <p className="text-sm text-muted mb-3">{item.desc}</p>
+                      <span className="text-xs text-accent flex items-center gap-1">
+                        Learn more <ArrowRight size={12} />
+                      </span>
+                    </GlassCard>
+                  </a>
+                ) : (
+                  <Link key={item.href} href={item.href}>
+                    <GlassCard hoverable className="p-6 h-full">
+                      <h3 className="font-semibold mb-1">{item.label}</h3>
+                      <p className="text-sm text-muted mb-3">{item.desc}</p>
+                      <span className="text-xs text-accent flex items-center gap-1">
+                        Learn more <ArrowRight size={12} />
+                      </span>
+                    </GlassCard>
+                  </Link>
+                ),
+              )}
             </div>
           </div>
         </section>

@@ -49,6 +49,13 @@ export function GradientButton({
         </a>
       );
     }
+    if (href.startsWith("/docs")) {
+      return (
+        <a href={href} className={baseClasses}>
+          {children}
+        </a>
+      );
+    }
     return (
       <Link href={href} className={baseClasses}>
         {children}
