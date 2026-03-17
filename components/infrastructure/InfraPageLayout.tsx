@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import { AnimatedBackground } from "@/components/ui/AnimatedBackground";
 import { RelatedInfraPages } from "./RelatedInfraPages";
 import { GradientButton } from "@/components/ui/GradientButton";
+import { DOCS_URL } from "@/lib/site";
 
 interface RelatedPage {
   href: string;
@@ -69,7 +70,7 @@ export function InfraPageLayout({
               Runtime safety infrastructure that works on macOS, Linux, and in CI.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <GradientButton href="/docs">Read the Docs</GradientButton>
+              <GradientButton href={DOCS_URL} external>Read the Docs</GradientButton>
               <GradientButton
                 variant="outline"
                 href="https://github.com/always-further/nono"

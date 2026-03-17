@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import { AnimatedBackground } from "@/components/ui/AnimatedBackground";
 import { GradientButton } from "@/components/ui/GradientButton";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { DOCS_URL } from "@/lib/site";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
@@ -83,7 +84,7 @@ export function SdkPageLayout({
                   desc: "How kernel isolation works under the hood",
                 },
                 {
-                  href: "/docs",
+                  href: DOCS_URL,
                   label: "API Reference",
                   desc: "Full SDK documentation",
                 },
@@ -93,15 +94,27 @@ export function SdkPageLayout({
                   desc: "End-to-end walkthrough",
                 },
               ].map((item) => (
-                <Link key={item.href} href={item.href}>
-                  <GlassCard hoverable className="p-6 h-full">
-                    <h3 className="font-semibold mb-1">{item.label}</h3>
-                    <p className="text-sm text-muted mb-3">{item.desc}</p>
-                    <span className="text-xs text-accent flex items-center gap-1">
-                      Learn more <ArrowRight size={12} />
-                    </span>
-                  </GlassCard>
-                </Link>
+                item.href === DOCS_URL ? (
+                  <a key={item.href} href={item.href}>
+                    <GlassCard hoverable className="p-6 h-full">
+                      <h3 className="font-semibold mb-1">{item.label}</h3>
+                      <p className="text-sm text-muted mb-3">{item.desc}</p>
+                      <span className="text-xs text-accent flex items-center gap-1">
+                        Learn more <ArrowRight size={12} />
+                      </span>
+                    </GlassCard>
+                  </a>
+                ) : (
+                  <Link key={item.href} href={item.href}>
+                    <GlassCard hoverable className="p-6 h-full">
+                      <h3 className="font-semibold mb-1">{item.label}</h3>
+                      <p className="text-sm text-muted mb-3">{item.desc}</p>
+                      <span className="text-xs text-accent flex items-center gap-1">
+                        Learn more <ArrowRight size={12} />
+                      </span>
+                    </GlassCard>
+                  </Link>
+                )
               ))}
             </div>
           </div>
@@ -115,7 +128,7 @@ export function SdkPageLayout({
               Ship safer agents today
             </h2>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <GradientButton href="/docs">Read the Docs</GradientButton>
+              <GradientButton href={DOCS_URL} external>Read the Docs</GradientButton>
               <GradientButton
                 variant="outline"
                 href="https://github.com/always-further/nono"

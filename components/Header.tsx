@@ -15,6 +15,7 @@ import {
   Shield,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { DOCS_URL } from "@/lib/site";
 
 const DiscordIcon = ({ size = 20 }: { size?: number }) => (
   <svg
@@ -94,7 +95,7 @@ const navItems: NavItem[] = [
   { label: "Infrastructure", dropdown: infraDropdown },
   { label: "SDKs", dropdown: sdkDropdown },
   { label: "Blog", href: "/blog" },
-  { label: "Docs", href: "/docs" },
+  { label: "Docs", href: DOCS_URL, external: true },
 ];
 
 function DropdownMenu({ items }: { items: DropdownItem[] }) {
@@ -168,17 +169,33 @@ export default function Header() {
                 <DropdownMenu items={item.dropdown} />
               </div>
             ) : (
-              <Link
-                key={item.label}
-                href={item.href!}
-                className={`px-3 py-2 text-sm rounded-lg transition-colors ${
-                  isActive(item)
-                    ? "text-foreground"
-                    : "text-muted hover:text-foreground"
-                }`}
-              >
-                {item.label}
-              </Link>
+              item.external ? (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`px-3 py-2 text-sm rounded-lg transition-colors ${
+                    isActive(item)
+                      ? "text-foreground"
+                      : "text-muted hover:text-foreground"
+                  }`}
+                >
+                  {item.label}
+                </a>
+              ) : (
+                <Link
+                  key={item.label}
+                  href={item.href!}
+                  className={`px-3 py-2 text-sm rounded-lg transition-colors ${
+                    isActive(item)
+                      ? "text-foreground"
+                      : "text-muted hover:text-foreground"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              )
             ),
           )}
         </div>
@@ -252,14 +269,27 @@ export default function Header() {
                   )}
                 </div>
               ) : (
-                <Link
-                  key={item.label}
-                  href={item.href!}
-                  className="py-2 text-muted hover:text-foreground transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {item.label}
-                </Link>
+                item.external ? (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="py-2 text-muted hover:text-foreground transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {item.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={item.label}
+                    href={item.href!}
+                    className="py-2 text-muted hover:text-foreground transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                )
               ),
             )}
             <div className="flex items-center gap-4 pt-4 border-t border-border mt-2">

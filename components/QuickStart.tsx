@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Check, Copy, Apple, Monitor } from "lucide-react";
+import { DOCS_URL } from "@/lib/site";
 
 const codeExamples = [
   {
@@ -88,7 +89,9 @@ export default function QuickStart() {
         <p className="text-muted text-center mt-4 text-sm">
           Building from source requires Rust toolchain. See{" "}
           <a
-            href="/docs"
+            href={DOCS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-accent hover:underline"
           >
             the docs

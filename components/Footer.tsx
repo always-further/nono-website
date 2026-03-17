@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Github, BookOpen, Scale } from "lucide-react";
+import { DOCS_URL } from "@/lib/site";
 
 const DiscordIcon = ({ size = 18 }: { size?: number }) => (
   <svg
@@ -52,7 +53,7 @@ const columns: FooterColumn[] = [
     title: "Resources",
     links: [
       { label: "Blog", href: "/blog" },
-      { label: "Docs", href: "/docs" },
+      { label: "Docs", href: DOCS_URL, external: true },
       {
         label: "Discord",
         href: "https://discord.gg/pPcjYzGvbS",
@@ -86,12 +87,23 @@ export default function Footer() {
                         {link.label}
                       </a>
                     ) : (
-                      <Link
-                        href={link.href}
-                        className="text-sm text-muted hover:text-foreground transition-colors"
-                      >
-                        {link.label}
-                      </Link>
+                      link.external ? (
+                        <a
+                          href={link.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-muted hover:text-foreground transition-colors"
+                        >
+                          {link.label}
+                        </a>
+                      ) : (
+                        <Link
+                          href={link.href}
+                          className="text-sm text-muted hover:text-foreground transition-colors"
+                        >
+                          {link.label}
+                        </Link>
+                      )
                     )}
                   </li>
                 ))}
@@ -120,7 +132,9 @@ export default function Footer() {
 
           <div className="flex items-center gap-4 text-muted">
             <a
-              href="/docs"
+              href={DOCS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               className="hover:text-foreground transition-colors"
               aria-label="Docs"
               title="Docs"
