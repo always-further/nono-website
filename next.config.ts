@@ -100,7 +100,7 @@ const docsHostMatch = [{ type: "host" as const, value: "docs.nono.sh" }];
 
 const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
-    "/blog/*": ["./content/blog/**/*.mdx"],
+    "/blog/*": ["./content/blog/**/*.mdx", "./public/nono-square.svg"],
   },
   async headers() {
     return [
