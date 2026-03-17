@@ -1,0 +1,392 @@
+---
+title: "Sandboxing AI Agents with nono: From Discovery to Production Profiles"
+date: "2026-03-17"
+description: "Learn how to use nono's built-in profiles to sandbox AI agents like Claude Code. We cover the discovery process, customizing profiles, and best practices for production deployments."
+author: "Luke Hinds"
+authorRole: "Maintainer"
+tags: ["Security", "AI Agents", "Sandboxing", "Claude Code", "nono", "Profiles"]
+---
+
+# Sandboxing AI Agents with nono: From Discovery to Production Profiles
+
+AI agents that write code, run commands, and interact with your filesystem need guardrails. Without them, a single hallucinated `rm -rf` or an unintended credential read can cause real damage. **nono** is a capability-based sandboxing system that uses OS-enforced isolation (Landlock on Linux, Seatbelt on macOS) to make unauthorized operations structurally impossible.
+
+This post walks through the three tools that take you from "I have no idea what my agent touches" to "I have a locked-down profile ready for production": `nono learn`, `nono policy`, and `nono profile`.
+
+## Step 1: Discover What Your Agent Actually Needs
+
+Before you can write a sandbox profile, you need to know what filesystem paths and network endpoints your application accesses. Guessing leads to either over-permissive sandboxes (defeating the purpose) or broken applications (missing paths). `nono learn` solves this by tracing your command and reporting exactly what it touches.
+
+### Basic Discovery
+
+Run your agent under `nono learn`:
+
+```shell
+nono learn -- python my_agent.py
+```
+
+On **Linux**, this uses `strace` to intercept syscalls. On **macOS**, it uses `fs_usage` (which requires `sudo`). The output is a categorized summary of every path your application accessed:
+
+```
+============================================================
+ nono learn - Discovered Paths
+============================================================
+
+ READ (5 paths)
+ ----------------------------------------
+  /home/user/.config/my-agent
+  /home/user/.cache/huggingface
+  /etc/resolv.conf
+  /usr/lib/python3.12
+  /usr/share/ca-certificates
+
+ WRITE (1 paths)
+ ----------------------------------------
+  /tmp/my-agent-workspace
+
+ READ+WRITE (2 paths)
+ ----------------------------------------
+  /home/user/.local/share/my-agent
+  /home/user/projects/current
+
+ i 42 paths already covered by system defaults
+```
+
+Paths that nono's built-in system groups already cover (like `/usr/lib`, `/etc/ssl`) are filtered out and counted at the bottom, so you see only the application-specific paths you need to add to your profile.
+
+### Linux Network Discovery
+
+On Linux, `nono learn` also traces network activity, including outbound connections and listening ports. It correlates DNS queries with connections to show you hostnames rather than just IP addresses:
+
+```
+ OUTBOUND NETWORK (2 endpoints)
+ ----------------------------------------
+  api.openai.com (104.18.7.192):443 (12 connections)
+  huggingface.co (18.154.227.89):443 (3 connections)
+
+ LISTENING PORTS (1 endpoints)
+ ----------------------------------------
+  127.0.0.1:8080 (1 connections)
+```
+
+Use `--no-rdns` to skip reverse DNS lookups if they slow things down.
+
+### Compare Against an Existing Profile
+
+If you already have a profile and want to see what's missing, pass `--profile`:
+
+```shell
+nono learn --profile my-agent -- python my_agent.py
+```
+
+This shows only the paths **not** already covered by that profile, making it easy to iteratively tighten permissions.
+
+### Export as JSON
+
+For direct use in profile construction, the `--json` flag outputs a structured fragment:
+
+```shell
+nono learn --json -- python my_agent.py
+```
+
+```json
+{
+  "filesystem": {
+    "allow": ["/home/user/.local/share/my-agent", "/home/user/projects/current"],
+    "read": ["/home/user/.config/my-agent", "/home/user/.cache/huggingface"],
+    "write": ["/tmp/my-agent-workspace"]
+  },
+  "network": {
+    "outbound": [
+      {
+        "addr": "104.18.7.192",
+        "port": 443,
+        "hostname": "api.openai.com",
+        "count": 12
+      }
+    ],
+    "listening": []
+  }
+}
+```
+
+### Other Useful Flags
+
+| Flag | Purpose |
+| :---- | :---- |
+| `--all` | Show all accessed paths, including those covered by system defaults |
+| `--timeout <SECS>` | Limit trace duration for long-running or interactive programs |
+| `-v` / `-vv` / `-vvv` | Increasing verbosity levels for debugging |
+
+## Step 2: Understand the Security Policy
+
+Before building a profile, it helps to understand what nono protects by default. The `nono policy` command lets you inspect the built-in security groups and profiles.
+
+### List All Policy Groups
+
+```shell
+nono policy groups
+```
+
+This lists every security group available, each one a named collection of allow/deny rules. Groups fall into several categories:
+
+**Deny groups** block access to sensitive locations:
+
+- `deny_credentials` \-- blocks `~/.ssh`, `~/.aws`, `~/.gnupg`, `~/.kube`, `~/.docker`, and other credential stores  
+- `deny_keychains_macos` / `deny_keychains_linux` \-- blocks system keychains and password managers  
+- `deny_browser_data_macos` / `deny_browser_data_linux` \-- blocks browser cookies and session data  
+- `deny_macos_private` \-- blocks Messages, Mail, and other private macOS data  
+- `deny_shell_history` \-- blocks `.bash_history`, `.zsh_history`, etc.  
+- `deny_shell_configs` \-- blocks `.zshrc`, `.bashrc`, and similar files that may embed secrets
+
+**System groups** provide read or write access to OS paths:
+
+- `system_read_macos` / `system_read_linux` \-- standard system binaries, libraries, and config  
+- `system_write_macos` / `system_write_linux` \-- temporary directories and device nodes
+
+**Runtime groups** provide access for specific language toolchains:
+
+- `node_runtime` \-- `~/.nvm`, `~/.fnm`, `~/.npm`, and related paths  
+- `python_runtime` \-- `~/.pyenv`, `~/.conda`, `~/.local/share/uv`  
+- `rust_runtime` \-- `~/.cargo`, `~/.rustup`  
+- `go_runtime` \-- `~/go`, `/usr/local/go`
+
+**Command blocking groups** prevent execution of destructive commands:
+
+- `dangerous_commands` \-- blocks `rm`, `dd`, `chmod`, `sudo`, `kill`, `shutdown`, and more  
+- `dangerous_commands_macos` \-- additionally blocks `srm`, `brew`, `launchctl`  
+- `dangerous_commands_linux` \-- additionally blocks `shred`, `mkfs`, `systemctl`, `apt`, `pacman`
+
+### Inspect a Specific Group
+
+```shell
+nono policy groups deny_credentials
+```
+
+This shows the full list of paths and rules in that group. Add `--all-platforms` to see groups for all platforms, not just the one you're running on.
+
+### View Available Profiles
+
+```shell
+nono policy profiles
+```
+
+Lists all built-in and user-defined profiles. nono ships with profiles for common tools:
+
+| Profile | Description |
+| :---- | :---- |
+| `default` | Conservative base with all deny groups, system paths, and dangerous command blocking |
+| `claude-code` | Anthropic Claude Code CLI agent |
+| `codex` | OpenAI Codex CLI agent |
+| `python-dev` | Python development with pyenv, conda, and pip support |
+| `node-dev` | Node.js development with nvm, fnm, pnpm, and npm support |
+| `go-dev` | Go development with GOPATH and module support |
+| `rust-dev` | Rust development with cargo and rustup support |
+| `opencode` | OpenCode AI coding assistant |
+| `openclaw` | OpenClaw messaging gateway |
+| `swival` | Swival CLI coding agent |
+
+### Show a Fully Resolved Profile
+
+```shell
+nono policy show default
+```
+
+This resolves all group references, path variables, and inheritance to show exactly what capabilities a profile grants. Use `--raw` to see unexpanded variables (`$HOME` instead of `/Users/you`), or `--json` for machine-readable output.
+
+### Diff Two Profiles
+
+```shell
+nono policy diff default claude-code
+```
+
+Shows what `claude-code` adds or changes relative to `default`. This is useful for understanding what a specialized profile layers on top of the base.
+
+### Validate a Profile
+
+```shell
+nono policy validate ~/my-profile.json
+```
+
+Checks that your profile JSON is structurally valid, that referenced groups exist, and that the extended base profile can be found. Catches errors before you deploy.
+
+## Step 3: Build Your Profile
+
+With discovery data from `nono learn` and an understanding of the policy groups from `nono policy`, you're ready to create a profile.
+
+### Scaffold a New Profile
+
+```shell
+nono profile init my-agent --extends default
+```
+
+This creates a skeleton profile at `~/.config/nono/profiles/my-agent.json`:
+
+```json
+{
+  "extends": "default",
+  "meta": {
+    "name": "my-agent",
+    "version": "1.0.0",
+    "description": ""
+  },
+  "security": {
+    "groups": []
+  },
+  "workdir": {
+    "access": "readwrite"
+  },
+  "filesystem": {
+    "allow": [],
+    "read": []
+  }
+}
+```
+
+You can customize the scaffold:
+
+```shell
+# Include specific security groups
+nono profile init my-agent --extends default --groups python_runtime,node_runtime
+
+# Add a description
+nono profile init my-agent --extends default --description "My custom AI agent"
+
+# Generate a full skeleton with all sections
+nono profile init my-agent --extends default --full
+
+# Write to a specific path
+nono profile init my-agent --output ./my-agent-profile.json
+```
+
+### Fill in the Profile
+
+Using the paths discovered by `nono learn`, populate the filesystem section. The key fields:
+
+```json
+{
+  "extends": "default",
+  "meta": {
+    "name": "my-agent",
+    "version": "1.0.0",
+    "description": "Custom sandboxed AI agent"
+  },
+  "security": {
+    "groups": ["python_runtime"]
+  },
+  "filesystem": {
+    "allow": ["~/.local/share/my-agent"],
+    "read": ["~/.config/my-agent", "~/.cache/huggingface"],
+    "write": ["/tmp/my-agent-workspace"]
+  },
+  "network": {
+    "block": false
+  },
+  "workdir": {
+    "access": "readwrite"
+  }
+}
+```
+
+**Filesystem field meanings:**
+
+- `allow` \-- read+write access to directories (recursive)  
+- `read` \-- read-only access to directories (recursive)  
+- `write` \-- write-only access to directories (recursive)  
+- `allow_file` / `read_file` / `write_file` \-- same, but for single files instead of directories
+
+Paths support the variables `$HOME`, `$TMPDIR`, `$UID`, and `$WORKDIR`.
+
+### Inheritance
+
+The `extends` field lets profiles build on each other. When you extend `default`, your agent automatically gets all deny groups (credential protection, browser data blocking, dangerous command prevention) plus system path access. Your profile only needs to specify what's unique to your application.
+
+### Policy Patches
+
+For advanced control, the `policy` section lets you modify the resolved group set:
+
+```json
+{
+  "policy": {
+    "exclude_groups": ["deny_shell_configs"],
+    "add_deny_access": ["/path/to/extra/sensitive/dir"],
+    "override_deny": ["~/.bashrc"]
+  }
+}
+```
+
+- `exclude_groups` removes groups from the resolved set (note: groups marked `required` in policy.json cannot be excluded)  
+- `add_deny_access` adds extra deny rules beyond what groups provide  
+- `override_deny` exempts specific paths from deny groups (the path must also be explicitly granted access)
+
+### Validate Before Deploying
+
+```shell
+nono policy validate ~/.config/nono/profiles/my-agent.json
+```
+
+### Run Your Agent
+
+```shell
+nono run --profile my-agent -- python my_agent.py
+```
+
+The sandbox is now enforced at the OS kernel level. Your agent can only access exactly what the profile permits. Any unauthorized file access or command execution fails with a permission error.
+
+## The Full Workflow
+
+Here's the complete loop:
+
+```shell
+# 1. Discover what your agent needs
+nono learn -- python my_agent.py
+
+# 2. Understand what's already protected
+nono policy groups deny_credentials
+nono policy show default
+
+# 3. Create a profile scaffold
+nono profile init my-agent --extends default --groups python_runtime
+
+# 4. Edit the profile with discovered paths
+$EDITOR ~/.config/nono/profiles/my-agent.json
+
+# 5. Validate it
+nono policy validate ~/.config/nono/profiles/my-agent.json
+
+# 6. Test with learn to check for gaps
+nono learn --profile my-agent -- python my_agent.py
+
+# 7. Run sandboxed
+nono run --profile my-agent -- python my_agent.py
+```
+
+Step 6 is the key iteration step. Run `nono learn --profile my-agent` and if it reports no additional paths needed, your profile is complete. If it shows gaps, add the missing paths and repeat.
+
+## What Gets Blocked
+
+To give a concrete sense of what nono prevents, here's what happens when an agent running under the `default` profile tries to access protected resources:
+
+- **Reading `~/.ssh/id_rsa`** \-- blocked by `deny_credentials`  
+- **Reading `~/.bash_history`** \-- blocked by `deny_shell_history`  
+- **Running `rm -rf /`** \-- blocked by `dangerous_commands`  
+- **Reading browser cookies** \-- blocked by `deny_browser_data_macos` / `deny_browser_data_linux`  
+- **Accessing `~/.aws/credentials`** \-- blocked by `deny_credentials`
+
+These protections are enforced by the OS kernel. The agent process cannot bypass them, escalate privileges, or disable the sandbox after it's applied. There is no escape hatch by design.
+
+## Summary
+
+| Tool | Purpose |
+| :---- | :---- |
+| `nono learn` | Trace your application to discover required filesystem paths and network endpoints |
+| `nono policy groups` | Inspect available security groups and their rules |
+| `nono policy profiles` | List built-in and user profiles |
+| `nono policy show` | View the fully resolved capabilities of a profile |
+| `nono policy diff` | Compare two profiles side by side |
+| `nono policy validate` | Check a profile for structural and reference errors |
+| `nono profile init` | Scaffold a new profile JSON file |
+| `nono profile schema` | Output the JSON Schema for editor validation |
+| `nono profile guide` | Print the profile authoring guide |
+
+The combination of automated discovery, transparent policy inspection, and profile tooling means you don't have to guess what your agent needs or manually audit system call traces. `nono learn` tells you what paths are required, `nono policy` shows you what's already protected, and `nono profile` gives you the structure to lock it all down.  
