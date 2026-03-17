@@ -1,7 +1,7 @@
 ---
-title: "Sandboxing AI Agents with nono: From Discovery to Production Profiles"
+title: "How to Build nono Sandbox Profiles for AI Agents"
 date: "2026-03-17"
-description: "Learn how to use nono's built-in profiles to sandbox AI agents like Claude Code. We cover the discovery process, customizing profiles, and best practices for production deployments."
+description: "Learn how to use nono learn, policy, and profile commands to build production-ready sandbox profiles for AI agents like Claude Code."
 author: "Luke Hinds"
 authorRole: "Maintainer"
 tags: ["Security", "AI Agents", "Sandboxing", "Claude Code", "nono", "Profiles"]
@@ -9,13 +9,13 @@ tags: ["Security", "AI Agents", "Sandboxing", "Claude Code", "nono", "Profiles"]
 
 # Sandboxing AI Agents with nono: From Discovery to Production Profiles
 
-AI agents that write code, run commands, and interact with your filesystem need guardrails. Without them, a single hallucinated `rm -rf` or an unintended credential read can cause real damage. **nono** is a capability-based sandboxing system that uses OS-enforced isolation (Landlock on Linux, Seatbelt on macOS) to make unauthorized operations structurally impossible.
+AI agents that write code, run commands, and interact with your filesystem need guardrails. Without them, a single hallucinated `rm -rf` or an unintended credential read can cause real damage. **nono** is a capability-based sandboxing system that uses [OS-enforced isolation](/linux-sandbox) (Landlock on Linux, Seatbelt on macOS) to make unauthorized operations structurally impossible.
 
 This post walks through the three tools that take you from "I have no idea what my agent touches" to "I have a locked-down profile ready for production": `nono learn`, `nono policy`, and `nono profile`.
 
 ## Step 1: Discover What Your Agent Actually Needs
 
-Before you can write a sandbox profile, you need to know what filesystem paths and network endpoints your application accesses. Guessing leads to either over-permissive sandboxes (defeating the purpose) or broken applications (missing paths). `nono learn` solves this by tracing your command and reporting exactly what it touches.
+Before you can write a sandbox profile, you need to know what filesystem paths and network endpoints your application accesses. Guessing leads to either over-permissive sandboxes (defeating the purpose) or broken applications (missing paths). `nono learn` solves this by [tracing your command and reporting exactly what it touches](https://nono.sh/docs/cli/features/learn).
 
 ### Basic Discovery
 
@@ -120,7 +120,7 @@ nono learn --json -- python my_agent.py
 
 ## Step 2: Understand the Security Policy
 
-Before building a profile, it helps to understand what nono protects by default. The `nono policy` command lets you inspect the built-in security groups and profiles.
+Before building a profile, it helps to understand what nono protects by default. The `nono policy` command lets you [inspect the built-in security groups and profiles](https://nono.sh/docs/cli/features/policy-introspection).
 
 ### List All Policy Groups
 
@@ -390,3 +390,5 @@ These protections are enforced by the OS kernel. The agent process cannot bypass
 | `nono profile guide` | Print the profile authoring guide |
 
 The combination of automated discovery, transparent policy inspection, and profile tooling means you don't have to guess what your agent needs or manually audit system call traces. `nono learn` tells you what paths are required, `nono policy` shows you what's already protected, and `nono profile` gives you the structure to lock it all down.  
+
+For a deeper walkthrough, start with the docs on [how nono learn traces command behavior](https://nono.sh/docs/cli/features/learn) and then review [policy introspection for built-in groups and profiles](https://nono.sh/docs/cli/features/policy-introspection). Together, they give you the quickest path from discovery to a production-ready sandbox profile.
