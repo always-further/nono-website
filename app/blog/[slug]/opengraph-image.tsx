@@ -1,6 +1,4 @@
 import { ImageResponse } from "next/og";
-import { readFileSync } from "fs";
-import { join } from "path";
 import { getPostBySlug } from "@/lib/blog";
 
 export const size = {
@@ -25,10 +23,9 @@ function formatDate(date: string) {
 export default async function OpenGraphImage({ params }: ImageProps) {
   const { slug } = await params;
   const post = getPostBySlug(slug);
-  const logoSvg = readFileSync(
-    join(process.cwd(), "public/nono-square.svg"),
-    "utf-8",
-  );
+  const logoSvg = await fetch(
+    new URL("../../../public/nono-square.svg", import.meta.url),
+  ).then((response) => response.text());
   const logoBase64 = `data:image/svg+xml;base64,${Buffer.from(logoSvg).toString("base64")}`;
 
   return new ImageResponse(
