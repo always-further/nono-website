@@ -3,6 +3,8 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { getPostBySlug } from "@/lib/blog";
 
+export const runtime = "nodejs";
+
 export const size = {
   width: 1200,
   height: 630,
