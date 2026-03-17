@@ -1,8 +1,8 @@
 import { InfraPageLayout } from "@/components/infrastructure/InfraPageLayout";
 import { InfraCodeBlock } from "@/components/infrastructure/InfraCodeBlock";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { DOCS_URL } from "@/lib/site";
 import { Lock, Layers } from "lucide-react";
-import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -157,12 +157,14 @@ export default function LinuxSandboxPage() {
             directories, and editor integrations. Profiles are
             version-controlled alongside your code.
           </p>
-          <Link
-            href="/docs"
+          <a
+            href={DOCS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-xs text-accent hover:text-accent-hover transition-colors"
           >
             See profile reference &rarr;
-          </Link>
+          </a>
         </GlassCard>
 
         {/* Live output */}

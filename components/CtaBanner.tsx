@@ -3,6 +3,7 @@
 import { AnimatedBackground } from "@/components/ui/AnimatedBackground";
 import { GradientButton } from "@/components/ui/GradientButton";
 import { TextScramble } from "@/components/hero/TextScramble";
+import { DOCS_URL } from "@/lib/site";
 import { ArrowRight } from "lucide-react";
 
 export default function CtaBanner() {
@@ -26,10 +27,10 @@ export default function CtaBanner() {
             <TextScramble text="Kernel-level isolation, cryptographic audit trails, and atomic rollbacks. Open source and ready to deploy." />
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <GradientButton href="https://nono.sh/docs/cli/getting_started/installation" external size="lg">
+            <GradientButton href={`${DOCS_URL}/cli/getting_started/installation`} external size="lg">
               Get Started <ArrowRight size={16} />
             </GradientButton>
-            <GradientButton href="/docs" variant="outline" size="lg">
+            <GradientButton href={DOCS_URL} external variant="outline" size="lg">
               Read the Docs
             </GradientButton>
           </div>

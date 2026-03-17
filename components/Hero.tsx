@@ -6,6 +6,7 @@ import { AnimatedBackground } from "@/components/ui/AnimatedBackground";
 import { GradientButton } from "@/components/ui/GradientButton";
 import { InstallSnippet } from "@/components/hero/InstallSnippet";
 import { TextScramble } from "@/components/hero/TextScramble";
+import { DOCS_URL } from "@/lib/site";
 
 export default function Hero() {
   return (
@@ -40,7 +41,7 @@ export default function Hero() {
           <GradientButton href="https://github.com/always-further/nono" external size="lg">
             Get Started <ArrowRight size={18} />
           </GradientButton>
-          <GradientButton href="/docs" variant="outline" size="lg">
+          <GradientButton href={DOCS_URL} external variant="outline" size="lg">
             Documentation
           </GradientButton>
         </div>
@@ -56,7 +57,13 @@ export default function Hero() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 font-medium text-foreground hover:text-muted-strong transition-colors"
             >
-              <Image src="/sigstore.svg" alt="Sigstore" width={18} height={18} />
+              <Image
+                src="/sigstore.svg"
+                alt="Sigstore"
+                width={18}
+                height={18}
+                style={{ width: "auto", height: "18px" }}
+              />
               Sigstore
             </a>
           </div>

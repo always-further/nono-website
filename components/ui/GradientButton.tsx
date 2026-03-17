@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { DOCS_URL } from "@/lib/site";
 
 interface GradientButtonProps {
   href?: string;
@@ -35,14 +36,21 @@ export function GradientButton({
       "border border-[rgba(255,255,255,0.1)] text-foreground backdrop-blur-sm bg-[rgba(255,255,255,0.03)] hover:border-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.06)] hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]",
     className,
   );
+  const isDocsLink =
+    !!href &&
+    (href.startsWith("/docs") || href.startsWith(DOCS_URL));
 
   if (href) {
-    if (external) {
+    if (external || isDocsLink) {
       return (
         <a
           href={href}
-          target="_blank"
-          rel="noopener noreferrer"
+          {...(external
+            ? {
+                target: "_blank",
+                rel: "noopener noreferrer",
+              }
+            : {})}
           className={baseClasses}
         >
           {children}
