@@ -7,7 +7,13 @@ import { Anchor } from "@/components/blog/mdx/Anchor";
 
 export function getMdxComponents(): MDXComponents {
   return {
-    pre: ({ children }) => <>{children}</>,
+    pre: ({ children }) => {
+      // Pass data-block prop to child code element to distinguish from inline code
+      if (React.isValidElement(children) && children.type === CodeBlock) {
+        return React.cloneElement(children as React.ReactElement<Record<string, unknown>>, { "data-block": true });
+      }
+      return <>{children}</>;
+    },
     code: CodeBlock as MDXComponents["code"],
     h1: (props) => <Anchor level={1} {...props} />,
     h2: (props) => <Anchor level={2} {...props} />,

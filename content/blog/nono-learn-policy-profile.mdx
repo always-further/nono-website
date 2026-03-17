@@ -27,7 +27,7 @@ nono learn -- python my_agent.py
 
 On **Linux**, this uses `strace` to intercept syscalls. On **macOS**, it uses `fs_usage` (which requires `sudo`). The output is a categorized summary of every path your application accessed:
 
-```
+```text
 ============================================================
  nono learn - Discovered Paths
 ============================================================
@@ -49,7 +49,7 @@ On **Linux**, this uses `strace` to intercept syscalls. On **macOS**, it uses `f
   /home/user/.local/share/my-agent
   /home/user/projects/current
 
- i 42 paths already covered by system defaults
+42 paths already covered by system defaults
 ```
 
 Paths that nono's built-in system groups already cover (like `/usr/lib`, `/etc/ssl`) are filtered out and counted at the bottom, so you see only the application-specific paths you need to add to your profile.
@@ -58,7 +58,7 @@ Paths that nono's built-in system groups already cover (like `/usr/lib`, `/etc/s
 
 On Linux, `nono learn` also traces network activity, including outbound connections and listening ports. It correlates DNS queries with connections to show you hostnames rather than just IP addresses:
 
-```
+```text
  OUTBOUND NETWORK (2 endpoints)
  ----------------------------------------
   api.openai.com (104.18.7.192):443 (12 connections)
