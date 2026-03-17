@@ -99,6 +99,9 @@ const docsSecurityHeaders = [
 const docsHostMatch = [{ type: "host" as const, value: "docs.nono.sh" }];
 
 const nextConfig: NextConfig = {
+  outputFileTracingIncludes: {
+    "/blog/*": ["./content/blog/**/*.mdx"],
+  },
   async headers() {
     return [
       {
