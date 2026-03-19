@@ -16,9 +16,9 @@ export function InfraCodeBlock({
   className,
 }: InfraCodeBlockProps) {
   return (
-    <div className={`border border-border ${className ?? ""}`}>
-      <div className="px-4 py-2 border-b border-border">
-        <span className="text-xs font-mono text-muted">
+    <div className={`border border-code-border bg-code-bg text-code-text ${className ?? ""}`}>
+      <div className="px-4 py-2 border-b border-code-border">
+        <span className="text-xs font-mono text-code-text/60">
           {filename ?? language}
         </span>
       </div>

@@ -58,14 +58,14 @@ export default function SdkPreview() {
           subtitle="Enforce kernel-level isolation, network filtering, and atomic rollbacks with native SDKs."
         />
 
-        <div className="grid md:grid-cols-3 gap-0 border border-border">
+        <div className="grid md:grid-cols-3 gap-0 border border-code-border bg-code-bg text-code-text">
           {snippets.map((snippet, i) => (
             <div
               key={snippet.label}
-              className={`${i > 0 ? "border-t md:border-t-0 md:border-l border-border" : ""}`}
+              className={`${i > 0 ? "border-t md:border-t-0 md:border-l border-code-border" : ""}`}
             >
-              <div className="px-4 py-2 border-b border-border">
-                <span className="text-xs font-mono uppercase tracking-wider text-muted">
+              <div className="px-4 py-2 border-b border-code-border">
+                <span className="text-xs font-mono uppercase tracking-wider text-code-text/60">
                   {snippet.label}
                 </span>
               </div>

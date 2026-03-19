@@ -38,7 +38,7 @@ export function CodeBlock({
 
   if (!className) {
     return (
-      <code className="px-1.5 py-0.5 bg-code-bg border border-border font-mono text-xs text-code-text">
+      <code className="px-1.5 py-0.5 bg-code-bg border border-code-border font-mono text-xs text-code-text">
         {children}
       </code>
     );
@@ -51,20 +51,20 @@ export function CodeBlock({
   };
 
   return (
-    <div className="my-6 overflow-hidden border border-border bg-code-bg">
-      <div className="flex items-center justify-between px-4 py-2 border-b border-border">
-        <span className="text-xs font-mono text-muted">
+    <div className="my-6 overflow-hidden border border-code-border bg-code-bg text-code-text">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-code-border">
+        <span className="text-xs font-mono text-code-text/60">
           {filename ?? language}
         </span>
         <div className="flex items-center gap-3">
           {filename && (
-            <span className="text-xs text-muted/60 uppercase tracking-wider font-mono">
+            <span className="text-xs text-code-text/40 uppercase tracking-wider font-mono">
               {language}
             </span>
           )}
           <button
             onClick={handleCopy}
-            className="p-1 text-muted hover:text-foreground transition-colors"
+            className="p-1 text-code-text/40 hover:text-code-text transition-colors"
             aria-label="Copy code"
           >
             {copied ? <Check size={14} /> : <Copy size={14} />}

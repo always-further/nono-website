@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { DOCS_URL } from "@/lib/site";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const DiscordIcon = ({ size = 20 }: { size?: number }) => (
   <svg
@@ -199,7 +200,8 @@ export default function Header() {
         </div>
 
         {/* Right actions */}
-        <div className="hidden lg:flex items-center gap-3">
+        <div className="hidden lg:flex items-center gap-2">
+          <ThemeToggle />
           <a
             href="https://discord.gg/pPcjYzGvbS"
             target="_blank"
@@ -221,13 +223,16 @@ export default function Header() {
         </div>
 
         {/* Mobile menu button */}
-        <button
-          className="lg:hidden p-2"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Toggle menu"
-        >
-          {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
+        <div className="flex lg:hidden items-center gap-1">
+          <ThemeToggle />
+          <button
+            className="p-2"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
       </nav>
 
       {/* Mobile menu */}

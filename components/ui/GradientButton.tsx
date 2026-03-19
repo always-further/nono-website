@@ -31,7 +31,7 @@ export function GradientButton({
     "inline-flex items-center justify-center gap-2 font-mono font-medium transition-all duration-200 relative tracking-tight",
     sizeClasses[size],
     variant === "primary" &&
-      "text-black bg-white hover:bg-neutral-200",
+      "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] hover:bg-[var(--btn-primary-hover)]",
     variant === "outline" &&
       "border border-border-strong text-foreground hover:bg-surface hover:border-foreground",
     className,

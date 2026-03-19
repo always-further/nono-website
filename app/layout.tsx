@@ -69,11 +69,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-scroll-behavior="smooth">
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <OrganizationSchema />
         <WebSiteSchema />
         <SoftwareApplicationSchema />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var t=localStorage.getItem("theme")||"dark";document.documentElement.setAttribute("data-theme",t)})()`,
+          }}
+        />
         <Script id="analytics-bootstrap" strategy="beforeInteractive">
           {`
             (function() {

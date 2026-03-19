@@ -38,15 +38,15 @@ export function SdkPageLayout({
             <p className="text-sm text-muted leading-relaxed max-w-2xl mb-6">
               Enforce kernel-level isolation, network filtering, and atomic
               rollbacks from {language} with{" "}
-              <code className="px-1.5 py-0.5 bg-code-bg border border-border font-mono text-xs">
+              <code className="px-1.5 py-0.5 bg-code-bg border border-code-border font-mono text-xs text-code-text">
                 {packageName}
               </code>
               .
             </p>
 
             <div className="flex items-center gap-4">
-              <div className="inline-flex items-center px-4 py-2.5 border border-border">
-                <code className="font-mono text-sm text-foreground">
+              <div className="inline-flex items-center px-4 py-2.5 border border-code-border bg-code-bg">
+                <code className="font-mono text-sm text-code-text">
                   {installCommand}
                 </code>
               </div>
