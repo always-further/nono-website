@@ -16,10 +16,10 @@ export default function Home() {
       <Header />
       <main>
         <Hero />
-        <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+        <div className="h-px bg-border" />
         <Pillars />
         <SdkPreview />
-        <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+        <div className="h-px bg-border" />
         <Testimonials testimonials={testimonialItems} />
         <CtaBanner />
       </main>

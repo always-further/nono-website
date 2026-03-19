@@ -14,56 +14,21 @@ const config: Record<
   {
     icon: typeof Info;
     label: string;
-    border: string;
-    iconColor: string;
-    bg: string;
   }
 > = {
-  note: {
-    icon: Info,
-    label: "Note",
-    border: "border-blue-800",
-    iconColor: "text-blue-400",
-    bg: "bg-blue-950/20",
-  },
-  warning: {
-    icon: AlertTriangle,
-    label: "Warning",
-    border: "border-yellow-800",
-    iconColor: "text-yellow-400",
-    bg: "bg-yellow-950/20",
-  },
-  tip: {
-    icon: Lightbulb,
-    label: "Tip",
-    border: "border-green-800",
-    iconColor: "text-green-400",
-    bg: "bg-green-950/20",
-  },
-  danger: {
-    icon: AlertOctagon,
-    label: "Danger",
-    border: "border-accent",
-    iconColor: "text-accent",
-    bg: "bg-red-950/20",
-  },
+  note: { icon: Info, label: "Note" },
+  warning: { icon: AlertTriangle, label: "Warning" },
+  tip: { icon: Lightbulb, label: "Tip" },
+  danger: { icon: AlertOctagon, label: "Danger" },
 };
 
 export function Admonition({ type, title, children }: AdmonitionProps) {
-  const {
-    icon: Icon,
-    label,
-    border,
-    iconColor,
-    bg,
-  } = config[type];
+  const { icon: Icon, label } = config[type];
 
   return (
-    <div className={`my-6 rounded-xl border ${border} ${bg} p-5`}>
-      <div
-        className={`flex items-center gap-2 mb-2 font-semibold text-sm ${iconColor}`}
-      >
-        <Icon size={16} strokeWidth={2} />
+    <div className="my-6 border border-border p-5">
+      <div className="flex items-center gap-2 mb-2 font-mono text-xs uppercase tracking-wider text-foreground">
+        <Icon size={14} strokeWidth={1.5} />
         <span>{title ?? label}</span>
       </div>
       <div className="text-sm text-muted leading-relaxed [&>p]:mb-0">

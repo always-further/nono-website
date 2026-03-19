@@ -100,21 +100,21 @@ const navItems: NavItem[] = [
 
 function DropdownMenu({ items }: { items: DropdownItem[] }) {
   return (
-    <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-      <div className="rounded-xl border border-border-strong bg-background-secondary/95 backdrop-blur-xl shadow-2xl p-2 min-w-[280px]">
+    <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50">
+      <div className="border border-border bg-background p-1 min-w-[260px]">
         {items.map((item) => (
           <Link
             key={item.href}
             href={item.href}
-            className="flex items-start gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-hover transition-colors"
+            className="flex items-start gap-3 px-3 py-2 hover:bg-surface transition-colors"
           >
             <item.icon
-              size={16}
+              size={14}
               className="text-muted mt-0.5 shrink-0"
               strokeWidth={1.5}
             />
             <div>
-              <div className="text-sm font-medium text-foreground">
+              <div className="text-xs font-mono font-medium text-foreground">
                 {item.label}
               </div>
               <div className="text-xs text-muted">{item.description}</div>
@@ -139,11 +139,11 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
       <nav className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
         <Link
           href="/"
-          className="font-bold text-xl bg-gradient-to-r from-accent to-accent-blue bg-clip-text text-transparent"
+          className="font-mono font-bold text-lg text-foreground tracking-tight"
         >
           nono
         </Link>
@@ -154,7 +154,7 @@ export default function Header() {
             item.dropdown ? (
               <div key={item.label} className="relative group">
                 <button
-                  className={`flex items-center gap-1 px-3 py-2 text-sm rounded-lg transition-colors ${
+                  className={`flex items-center gap-1 px-3 py-2 text-xs font-mono uppercase tracking-wider transition-colors ${
                     isActive(item)
                       ? "text-foreground"
                       : "text-muted hover:text-foreground"
@@ -162,40 +162,38 @@ export default function Header() {
                 >
                   {item.label}
                   <ChevronDown
-                    size={14}
+                    size={12}
                     className="transition-transform group-hover:rotate-180"
                   />
                 </button>
                 <DropdownMenu items={item.dropdown} />
               </div>
+            ) : item.external ? (
+              <a
+                key={item.label}
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`px-3 py-2 text-xs font-mono uppercase tracking-wider transition-colors ${
+                  isActive(item)
+                    ? "text-foreground"
+                    : "text-muted hover:text-foreground"
+                }`}
+              >
+                {item.label}
+              </a>
             ) : (
-              item.external ? (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`px-3 py-2 text-sm rounded-lg transition-colors ${
-                    isActive(item)
-                      ? "text-foreground"
-                      : "text-muted hover:text-foreground"
-                  }`}
-                >
-                  {item.label}
-                </a>
-              ) : (
-                <Link
-                  key={item.label}
-                  href={item.href!}
-                  className={`px-3 py-2 text-sm rounded-lg transition-colors ${
-                    isActive(item)
-                      ? "text-foreground"
-                      : "text-muted hover:text-foreground"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              )
+              <Link
+                key={item.label}
+                href={item.href!}
+                className={`px-3 py-2 text-xs font-mono uppercase tracking-wider transition-colors ${
+                  isActive(item)
+                    ? "text-foreground"
+                    : "text-muted hover:text-foreground"
+                }`}
+              >
+                {item.label}
+              </Link>
             ),
           )}
         </div>
@@ -209,15 +207,15 @@ export default function Header() {
             className="p-2 text-muted hover:text-foreground transition-colors"
             aria-label="Discord"
           >
-            <DiscordIcon size={18} />
+            <DiscordIcon size={16} />
           </a>
           <a
             href="https://github.com/always-further/nono"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-border-strong text-foreground hover:bg-surface-hover transition-colors"
+            className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-mono border border-border text-foreground hover:bg-surface transition-colors"
           >
-            <Github size={16} />
+            <Github size={14} />
             GitHub
           </a>
         </div>
@@ -228,7 +226,7 @@ export default function Header() {
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="Toggle menu"
         >
-          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       </nav>
 
@@ -245,11 +243,11 @@ export default function Header() {
                         mobileExpanded === item.label ? null : item.label,
                       )
                     }
-                    className="flex items-center justify-between w-full py-2 text-muted hover:text-foreground transition-colors"
+                    className="flex items-center justify-between w-full py-2 text-xs font-mono uppercase tracking-wider text-muted hover:text-foreground transition-colors"
                   >
                     <span>{item.label}</span>
                     <ChevronDown
-                      size={16}
+                      size={14}
                       className={`transition-transform ${mobileExpanded === item.label ? "rotate-180" : ""}`}
                     />
                   </button>
@@ -259,7 +257,7 @@ export default function Header() {
                         <Link
                           key={d.href}
                           href={d.href}
-                          className="py-2 text-sm text-muted hover:text-foreground transition-colors"
+                          className="py-2 text-xs font-mono text-muted hover:text-foreground transition-colors"
                           onClick={() => setMobileMenuOpen(false)}
                         >
                           {d.label}
@@ -268,28 +266,26 @@ export default function Header() {
                     </div>
                   )}
                 </div>
+              ) : item.external ? (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="py-2 text-xs font-mono uppercase tracking-wider text-muted hover:text-foreground transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item.label}
+                </a>
               ) : (
-                item.external ? (
-                  <a
-                    key={item.label}
-                    href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="py-2 text-muted hover:text-foreground transition-colors"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {item.label}
-                  </a>
-                ) : (
-                  <Link
-                    key={item.label}
-                    href={item.href!}
-                    className="py-2 text-muted hover:text-foreground transition-colors"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {item.label}
-                  </Link>
-                )
+                <Link
+                  key={item.label}
+                  href={item.href!}
+                  className="py-2 text-xs font-mono uppercase tracking-wider text-muted hover:text-foreground transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item.label}
+                </Link>
               ),
             )}
             <div className="flex items-center gap-4 pt-4 border-t border-border mt-2">
@@ -299,15 +295,15 @@ export default function Header() {
                 rel="noopener noreferrer"
                 className="text-muted hover:text-foreground transition-colors"
               >
-                <DiscordIcon size={20} />
+                <DiscordIcon size={18} />
               </a>
               <a
                 href="https://github.com/always-further/nono"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-muted hover:text-foreground transition-colors flex items-center gap-2"
+                className="text-muted hover:text-foreground transition-colors flex items-center gap-2 text-xs font-mono"
               >
-                <Github size={20} />
+                <Github size={16} />
                 <span>GitHub</span>
               </a>
             </div>

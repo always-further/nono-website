@@ -34,7 +34,6 @@ export function TextScramble({
   const frameRef = useRef<number>(0);
   const glitchTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  // Initial reveal animation (skip if glitchOnly)
   useEffect(() => {
     if (glitchOnly) return;
     const delayTimer = setTimeout(() => setStarted(true), delay);
@@ -85,7 +84,6 @@ export function TextScramble({
     };
   }, [started, text, scrambleDuration, glitchOnly]);
 
-  // Random micro-glitch after resolved
   useEffect(() => {
     if (!resolved || (!glitch && !glitchOnly)) return;
 

@@ -144,7 +144,7 @@ export default function RootLayout({
         </Script>
       </head>
       <body
-        className={`${GeistSans.variable} ${GeistSans.className} ${GeistMono.variable} antialiased`}
+        className={`${GeistSans.variable} ${GeistMono.variable} ${GeistMono.className} antialiased`}
       >
         {children}
         <Script

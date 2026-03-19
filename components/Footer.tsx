@@ -67,14 +67,13 @@ export default function Footer() {
   return (
     <footer className="py-16 px-6 border-t border-border">
       <div className="max-w-6xl mx-auto">
-        {/* Sitemap columns */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
           {columns.map((col) => (
             <div key={col.title}>
-              <h3 className="text-sm font-semibold text-foreground mb-4">
+              <h3 className="text-xs font-mono uppercase tracking-[0.15em] text-foreground mb-4">
                 {col.title}
               </h3>
-              <ul className="space-y-2.5">
+              <ul className="space-y-2">
                 {col.links.map((link) => (
                   <li key={link.href}>
                     {link.external ? (
@@ -82,28 +81,17 @@ export default function Footer() {
                         href={link.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-muted hover:text-foreground transition-colors"
+                        className="text-xs font-mono text-muted hover:text-foreground transition-colors"
                       >
                         {link.label}
                       </a>
                     ) : (
-                      link.external ? (
-                        <a
-                          href={link.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-muted hover:text-foreground transition-colors"
-                        >
-                          {link.label}
-                        </a>
-                      ) : (
-                        <Link
-                          href={link.href}
-                          className="text-sm text-muted hover:text-foreground transition-colors"
-                        >
-                          {link.label}
-                        </Link>
-                      )
+                      <Link
+                        href={link.href}
+                        className="text-xs font-mono text-muted hover:text-foreground transition-colors"
+                      >
+                        {link.label}
+                      </Link>
                     )}
                   </li>
                 ))}
@@ -112,20 +100,19 @@ export default function Footer() {
           ))}
         </div>
 
-        {/* Branding row */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-8 border-t border-border">
           <div className="flex items-center gap-4">
             <a
               href="https://alwaysfurther.ai?utm_source=nono-sh"
               target="_blank"
               rel="noopener noreferrer"
-              className="opacity-60 hover:opacity-100 transition-opacity"
+              className="opacity-50 hover:opacity-100 transition-opacity"
             >
               <Image
                 src="/af-logo.svg"
                 alt="Always Further"
-                width={130}
-                height={27}
+                width={120}
+                height={24}
               />
             </a>
           </div>
@@ -139,7 +126,7 @@ export default function Footer() {
               aria-label="Docs"
               title="Docs"
             >
-              <BookOpen size={18} />
+              <BookOpen size={16} />
             </a>
             <a
               href="https://github.com/always-further/nono"
@@ -149,7 +136,7 @@ export default function Footer() {
               aria-label="GitHub"
               title="GitHub"
             >
-              <Github size={18} />
+              <Github size={16} />
             </a>
             <a
               href="https://discord.gg/pPcjYzGvbS"
@@ -159,7 +146,7 @@ export default function Footer() {
               aria-label="Discord"
               title="Discord"
             >
-              <DiscordIcon size={18} />
+              <DiscordIcon size={16} />
             </a>
             <a
               href="https://github.com/always-further/nono/blob/main/LICENSE"
@@ -169,7 +156,7 @@ export default function Footer() {
               aria-label="Apache-2.0 License"
               title="Apache-2.0 License"
             >
-              <Scale size={18} />
+              <Scale size={16} />
             </a>
           </div>
         </div>

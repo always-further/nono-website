@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { GlassCard } from "@/components/ui/GlassCard";
 
 interface RelatedPage {
   href: string;
@@ -15,19 +14,21 @@ interface RelatedInfraPagesProps {
 export function RelatedInfraPages({ pages }: RelatedInfraPagesProps) {
   return (
     <div>
-      <h2 className="text-xl font-semibold tracking-tight mb-6">
+      <h2 className="text-sm font-mono uppercase tracking-[0.15em] text-foreground mb-6">
         Related Infrastructure
       </h2>
-      <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="border border-border divide-y divide-border">
         {pages.map((page) => (
-          <Link key={page.href} href={page.href}>
-            <GlassCard hoverable className="p-6 h-full">
-              <h3 className="font-semibold mb-1">{page.label}</h3>
-              <p className="text-sm text-muted mb-3">{page.description}</p>
-              <span className="text-xs text-accent flex items-center gap-1">
-                Learn more <ArrowRight size={12} />
-              </span>
-            </GlassCard>
+          <Link
+            key={page.href}
+            href={page.href}
+            className="flex items-center justify-between px-6 py-4 hover:bg-surface transition-colors group"
+          >
+            <div>
+              <h3 className="text-sm font-mono font-medium text-foreground">{page.label}</h3>
+              <p className="text-xs text-muted mt-0.5">{page.description}</p>
+            </div>
+            <ArrowRight size={14} className="text-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
           </Link>
         ))}
       </div>
