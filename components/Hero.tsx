@@ -10,17 +10,17 @@ import { DOCS_URL } from "@/lib/site";
 export default function Hero() {
   return (
     <section className="relative pt-32 pb-24 px-6">
-      <div className="max-w-4xl mx-auto w-full">
+      <div className="max-w-4xl mx-auto w-full text-center">
         <div className="mb-12">
-          <h1 className="text-7xl md:text-8xl lg:text-9xl font-black tracking-tighter mb-4 text-foreground font-mono leading-none">
+          <h1 className="text-7xl md:text-8xl lg:text-9xl font-bold tracking-tighter mb-4 text-foreground font-mono leading-none">
             <TextScramble text="nono" delay={200} scrambleDuration={1000} glitch />
           </h1>
-          <p className="text-xl md:text-2xl text-muted max-w-2xl leading-relaxed">
-            Runtime safety infrastructure for AI agents. Kernel-enforced isolation, immutable auditing, and atomic rollbacks.
+          <p className="text-base md:text-lg text-muted max-w-2xl mx-auto leading-relaxed">
+            Runtime safety infrastructure for AI agents. Kernel-enforced isolation, supply-chain security, immutable auditing, atomic rollbacks, crendential management, and more.
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 mb-8">
+        <div className="flex flex-col sm:flex-row gap-3 mb-8 justify-center">
           <GradientButton href="https://github.com/always-further/nono" external size="lg">
             Get Started <ArrowRight size={16} />
           </GradientButton>
