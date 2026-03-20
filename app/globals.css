@@ -135,14 +135,14 @@ table th {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--muted);
-  border-bottom: 1px solid var(--border);
+  color: var(--muted-strong);
+  border-bottom: 1px solid var(--border-strong);
 }
 
 table td {
   padding: 0.75rem 1rem;
-  color: var(--muted);
-  border-bottom: 1px solid var(--border);
+  color: var(--foreground);
+  border-bottom: 1px solid var(--border-strong);
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 0.8125rem;
 }
