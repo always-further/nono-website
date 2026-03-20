@@ -21,7 +21,7 @@ export function getMdxComponents(): MDXComponents {
     h4: (props) => <Anchor level={4} {...props} />,
     img: BlogImage as MDXComponents["img"],
     table: ({ children }) => (
-      <div className="my-6 overflow-x-auto border border-border">
+      <div className="my-6 overflow-x-auto border border-border-strong">
         <table className="w-full text-sm border-collapse">{children}</table>
       </div>
     ),
@@ -29,14 +29,14 @@ export function getMdxComponents(): MDXComponents {
       <thead className="border-b border-border">{children}</thead>
     ),
     th: ({ children }) => (
-      <th className="px-4 py-3 text-left text-xs font-mono font-semibold uppercase tracking-wider text-foreground">{children}</th>
+      <th className="px-4 py-3 text-left text-xs font-mono font-semibold uppercase tracking-wider text-foreground border-b border-border-strong">{children}</th>
     ),
     tbody: ({ children }) => <tbody>{children}</tbody>,
     tr: ({ children }) => (
-      <tr className="border-b border-border last:border-b-0">{children}</tr>
+      <tr className="border-b border-border-strong last:border-b-0">{children}</tr>
     ),
     td: ({ children }) => (
-      <td className="px-4 py-3 text-muted">{children}</td>
+      <td className="px-4 py-3 text-muted-strong">{children}</td>
     ),
     blockquote: ({ children }) => (
       <blockquote className="border-l-2 border-foreground pl-6 my-6 text-muted italic">
@@ -56,15 +56,15 @@ export function getMdxComponents(): MDXComponents {
       <Admonition type="danger" title={title}>{children}</Admonition>
     ),
     p: ({ children }) => (
-      <p className="text-muted text-sm leading-relaxed mb-4">{children}</p>
+      <p className="text-muted-strong text-sm leading-relaxed mb-4">{children}</p>
     ),
     ul: ({ children }) => (
-      <ul className="list-disc list-outside pl-6 mb-4 space-y-1 text-muted text-sm">
+      <ul className="list-disc list-outside pl-6 mb-4 space-y-1 text-muted-strong text-sm">
         {children}
       </ul>
     ),
     ol: ({ children }) => (
-      <ol className="list-decimal list-outside pl-6 mb-4 space-y-1 text-muted text-sm">
+      <ol className="list-decimal list-outside pl-6 mb-4 space-y-1 text-muted-strong text-sm">
         {children}
       </ol>
     ),

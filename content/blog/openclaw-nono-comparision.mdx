@@ -1,0 +1,324 @@
+---
+title: "Nono vs OpenShell: A Technical Comparison of AI Agent Sandboxes"
+date: "2026-03-20"
+description: "A deep dive into the architectural differences between Nono and NVIDIA's OpenShell, two leading sandboxing solutions for untrusted AI agents."
+author: "Luke Hinds"
+authorRole: "Maintainer"
+tags: ["nono", "openshell", "sandboxing", "AI agents", "security", "Landlock", "seccomp", "Kubernetes"]
+---
+
+I've had a lot of people ask me how Nono compares to NVIDIA's OpenShell. Both projects sandbox untrusted AI agents using Landlock, seccomp, and a privileged parent process they each call a "supervisor." Both inject credentials through a network proxy. The vocabulary and feature-level overlap is significant.
+
+But the architectures are not the same. Here's a straight comparison of what each does, where each is strong, and where each falls short.
+
+Both projects are still young and rapidly evolving, nono was released in February 2024 and OpenShell in May 2024, so this is a snapshot of their current states, not a final verdict. Both are open source under Apache 2.0 - check them out, try them both, and see which fits your needs.
+
+---
+
+## How They Work
+
+**Nono** is a single binary. You wrap a command with it and the process runs inside a kernel-enforced sandbox -- that is all that is required. The sandbox is applied directly to the current process via kernel LSMs. Nono can run practically any agent that runs as a local process with no modifications: Python scripts, Rust binaries, Node.js apps, coding agents like Claude Code, Codex, or OpenCode, agent frameworks like LangSmith or AgentVerse, and so on. The sandboxing primitives are also exposed as a library with multi-language bindings, so you can embed it directly into your agent framework if you want.
+
+**OpenShell** is a Kubernetes-based sandbox platform. Each sandbox is a K8s pod inside a K3s cluster inside Docker. It's a full platform -- gateway server, gRPC control plane, OPA policy engine, SSH server, routing layer, TUI dashboard -- built to manage multiple sandboxes with centralized policy.
+
+---
+
+## Adapting to Different Agents
+
+Nono's core is a policy-free library with bindings for Rust, Python, TypeScript, and C and more recently Go. If you're building an agent framework, you can embed the sandbox directly into your runtime and define capabilities programmatically. The CLI adds opinionated policy on top, but the library stands alone.
+
+OpenShell's sandbox logic is tied to its container orchestration. You adopt the platform or you don't use it. That's fine if the platform fits your use case, but you can't pull out the sandboxing and embed it in something else.
+
+However, one area of overlap, is nono can with relative ease be used within a containerized environment, virtual machine or Kubernetes cluster. The kernel primitives it relies on (Landlock, seccomp) are available to unprivileged processes, so you can run nono inside a container or microVM for an additional layer of isolation.
+
+---
+
+## Sandbox Enforcement
+
+Both use Landlock for filesystem isolation and seccomp for syscall filtering. The mechanisms differ in important ways and maturity levels -- OpenShell's Landlock support is less feature-complete, and its seccomp implementation is a static deny-list with no runtime expansion capability. Nono's seccomp user notification implementation extends to transparent runtime capability expansion -- nono can grant access to files beyond the initial capability set without the agent needing any special protocol or sandbox restart.
+
+Nono also supports native macOS sandboxing via Seatbelt, while OpenShell relies on a Linux VM on macOS with no host-level enforcement.
+
+| Mechanism | Nono | OpenShell |
+|-----------|------|-----------|
+| **Landlock** | ABI V1-V6 detection, full feature matrix | ABI V2, `BestEffort` or `HardRequirement` |
+| **Seccomp** | `SECCOMP_RET_USER_NOTIF` on openat/openat2 (capability expansion) | `SECCOMP_RET_KILL_PROCESS` / `SECCOMP_RET_ERRNO` on socket() (network blocking) |
+| **macOS Seatbelt** | Full support via `sandbox_init()` + Scheme DSL | Not supported |
+| **Network namespace** | Not used (proxy on localhost instead) | veth pair with iptables bypass detection |
+| **Containers** | Not used (but composable with them) | K3s pod per sandbox |
+| **Privilege requirements** | None (unprivileged, no root) | CAP_NET_ADMIN, root for K3s |
+
+### The Core Divergence: Seccomp
+
+This is the single biggest functional difference between the two projects.
+
+**Nono** uses seccomp in `SECCOMP_RET_USER_NOTIF` mode. When the sandboxed child calls `open()` on a path outside its initial capability set, the kernel suspends the syscall and notifies the supervisor. The supervisor reads the requested path from `/proc/PID/mem`, checks protected roots, applies policy, optionally prompts a human, and either injects a valid file descriptor back into the process via `SECCOMP_IOCTL_NOTIF_ADDFD` or returns `EACCES`. The child's `open()` returns normally. The agent never knows the sandbox exists.
+
+This enables transparent runtime capability expansion -- the agent can request files beyond its initial permissions, and the supervisor can grant them without the agent needing any special protocol.
+
+**OpenShell** uses seccomp in traditional `SECCOMP_RET_ERRNO` / kill mode. The BPF filter blocks `socket()` calls for specific address families (AF_PACKET, AF_BLUETOOTH, AF_VSOCK, AF_NETLINK, and optionally AF_INET/AF_INET6). This is a static deny-list with no runtime expansion capability. Blocked syscalls simply fail with EPERM.
+
+| Aspect | Nono (seccomp-notify) | OpenShell (seccomp-errno) |
+|--------|----------------------|--------------------------|
+| **Trapped syscalls** | openat, openat2 | socket |
+| **Decision maker** | Supervisor process (runtime) | BPF program (compile-time) |
+| **Runtime expansion** | Yes (fd injection) | No |
+| **Agent awareness** | Transparent | Agent sees EPERM |
+| **Kernel requirement** | 5.14+ | 3.17+ |
+| **TOCTOU handling** | Notification ID validation + supervisor opens file | N/A (static filter) |
+
+### Why Runtime Expansion Matters
+
+Every sandbox hits the same tension -- too tight and the agent can't work, too loose and you've defeated the purpose.
+
+Static policy is simpler to audit, but AI agents are unpredictable. Static policy tends to end up either overly permissive (to avoid breaking things) or overly restrictive (breaking things). Transparent expansion lets you start tight and widen only what's needed, only when it's needed, with a human in the loop.
+
+---
+
+## The "Supervisor" -- Same Name, Different Thing
+
+Both projects use the term "supervisor" but the implementations are fundamentally different.
+
+### Nono's Supervisor: Capability Expansion Broker
+
+An interactive approval backend running in the parent process. Its primary role is intercepting filesystem access requests from the sandboxed child and making grant/deny decisions.
+
+**IPC**: Unix domain socket pair with 4-byte BE length-prefixed JSON framing, 64 KiB message limit, `SCM_RIGHTS` for fd passing, peer authentication via `SO_PEERCRED` (Linux) / `LOCAL_PEERPID` (macOS).
+
+**The approval loop:**
+1. Receive seccomp notification (trapped `openat`/`openat2`)
+2. Read path from `/proc/PID/mem`
+3. TOCTOU check (`notif_id_valid()`)
+4. Check protected roots (hard deny if match)
+5. Fast-path: check initial capability set
+6. Rate limit (token bucket: 10/sec, 5 burst)
+7. Trust verification (instruction file signature check)
+8. Delegate to approval backend (terminal prompt, webhook, etc.)
+9. Second TOCTOU check
+10. If approved: open file + inject fd; if denied: return `EACCES`
+
+The `ApprovalBackend` trait is defined in the library, not the CLI, so Python, TypeScript, and C bindings can implement custom approval logic.
+
+### OpenShell's Supervisor: Pod Orchestrator
+
+A process lifecycle manager running as PID 1 inside a K8s pod. It manages the child process, runs the network proxy, evaluates OPA policies, manages SSH, and pushes logs to the gateway. No IPC channel to the child, no approval loop, no capability expansion. Policy decisions are declarative, not interactive.
+
+| Aspect | Nono Supervisor | OpenShell Supervisor |
+|--------|----------------|---------------------|
+| **Purpose** | Interactive capability expansion | Process lifecycle management |
+| **Runs where** | Parent process (same host) | Inside K8s pod |
+| **IPC to child** | Unix socket + seccomp-notify | None (stdin/stdout + SSH) |
+| **Approval model** | Pluggable backend (terminal, webhook) | Declarative OPA |
+| **Runtime expansion** | Yes (fd injection) | No |
+| **Agent awareness** | Transparent | N/A |
+| **Runtime model** | poll(2), single-threaded | Tokio async, multi-task |
+
+The term "supervisor" overlaps, but the semantics are different. Nono's supervisor is a syscall-mediation boundary. OpenShell's supervisor is a container-side runtime manager.
+
+---
+
+## Credential Injection
+
+Both keep real credentials away from the agent via a proxy. The guarantees differ.
+
+### Nono
+
+Nono generates a 256-bit random session token and hands that to the agent as a fake API key. The real credential is loaded from the system keystore and only exists in the proxy process, which runs outside the sandbox. The agent never has the real key in its memory space.
+
+**Security properties:**
+- Credentials held in `Zeroizing<String>` -- automatically scrubbed from memory on drop
+- Custom `Debug` impl redacts all secrets to `[REDACTED]`
+- Session token uses constant-time comparison (prevents timing side-channels)
+- DNS rebinding protection with resolved-address pinning
+- SSRF protection: blocks cloud metadata (169.254.169.254), link-local, RFC 1918, loopback
+
+**Multiple keystore backends:**
+
+| Backend | URI Scheme | Notes |
+|---------|-----------|-------|
+| System keyring | (bare name) | macOS Keychain, Linux Secret Service, Windows Credential Manager |
+| 1Password | `op://vault/item/field` | Via `op` CLI, supports biometric unlock |
+| Apple Passwords | `apple-password://server/account` | macOS only, via `security` CLI |
+| Environment variables | `env://VAR_NAME` | With dangerous variable blocklist |
+
+Each backend includes injection hardening: 1Password URIs are validated against shell metacharacters, environment variable URIs block dangerous names (`LD_PRELOAD`, `DYLD_INSERT_LIBRARIES`, `NODE_OPTIONS`, `PATH`, etc.) with case-insensitive matching.
+
+### OpenShell
+
+OpenShell gives the agent placeholder strings (like `openshell:resolve:env:ANTHROPIC_API_KEY`) that the proxy rewrites at request time. Credentials are stored in the gateway database and fetched via gRPC at pod startup.
+
+**Caveat:** OpenShell's own tests show that placeholder rewriting requires TLS-terminated traffic. Without correct `tls: terminate` configuration, placeholders leak upstream unchanged. The credential isolation is conditional on configuration.
+
+| Aspect | Nono | OpenShell |
+|--------|------|-----------|
+| **Credential storage** | Hardware / Software-backed keystore | Gateway database (SQLite/Postgres) |
+| **Child exposure** | Phantom token (never sees real credential) | Placeholder env vars (rewritten by proxy) |
+| **Memory protection** | Zeroizing (zeroed on drop) | Standard String |
+| **SSRF protection** | DNS rebinding + resolved-address pinning | Post-OPA IP validation |
+
+Nono's phantom token pattern is unconditionally stronger: real credentials never enter the sandbox regardless of configuration. OpenShell's placeholder model is defensible but configuration-dependent.
+
+---
+
+## Policy Systems
+
+### Nono
+
+- JSON-based (`policy.json`, embedded at build time)
+- 22 named groups with allow/deny taxonomy, cross-platform + platform-specific
+- Named profiles (`default`, `claude-code`, `python-dev`, etc.)
+- `NeverGrantChecker`: hardcoded paths that can never be approved regardless of policy or user input
+- Unlink protection: global file deletion deny with overrides
+
+### OpenShell
+
+- OPA/Rego policy engine (`regorus` crate, pure Rust, in-process)
+- L4/L7 network filtering with per-binary identity binding
+- Live policy reload: polls gateway every 10s, hot-swaps OPA engine
+- Mechanistic policy mapper: automatic recommendations from denial logs
+- Policy versioning with status tracking
+
+OPA/Rego is more expressive -- L7 filtering and binary-identity binding go beyond host-based allowlists. But nono's JSON groups are more auditable, and its `NeverGrantChecker` provides a security floor that no policy change can override.
+
+Note that OpenShell's hot-reload only applies to network policy. Landlock and seccomp rules applied at fork time are immutable for the lifetime of the sandboxed process.
+
+---
+
+## Platform Support
+
+| Platform | Nono | OpenShell |
+|----------|------|-----------|
+| **Linux x86_64** | Full support | Full support |
+| **Linux arm64** | Full support | Full support |
+| **macOS (Apple Silicon)** | Full support (Seatbelt) | Not supported |
+| **macOS (Intel)** | Full support (Seatbelt) | Not supported |
+| **Windows** | Planned (WSL2) | Not supported |
+
+Nono provides native macOS security guarantees via Seatbelt, including Scheme DSL profile generation, symlink pair handling (`/tmp` -> `/private/tmp`), and `ptrace(PT_DENY_ATTACH)` for process hardening.
+
+OpenShell on macOS delegates everything to Docker Desktop's Linux VM. There is no host-level enforcement.
+
+This means OpenClaw users on macOS can leverage Nono for native sandboxing.
+
+---
+
+## Deployment Model
+
+| Aspect | Nono | OpenShell |
+|--------|------|-----------|
+| **Runtime** | Direct process sandboxing | K3s cluster in Docker |
+| **Dependencies** | None (single static binary) | Docker, K3s, Helm, etcd, CoreDNS |
+| **Startup time** | Milliseconds | Minutes (cluster bootstrap) |
+| **Privileges required** | None | CAP_NET_ADMIN, root for K3s |
+| **Container deployment** | Runs inside any container or microVM | Requires its own K3s cluster |
+| **Multi-tenancy** | Single-user (process-level) | Multi-tenant (pod isolation) |
+| **Remote access** | N/A | SSH server per sandbox |
+
+A common misconception is that nono is limited to bare-metal or local developer use. In practice, nono runs anywhere a process can run -- containers, Kubernetes pods, microVMs, CI runners, or bare metal. Landlock and seccomp user notification are available to unprivileged processes. There is no need for root, `CAP_SYS_ADMIN`, or any other capability.
+
+This means nono can be dropped into an existing container image as an additional isolation layer. A Kubernetes operator could wrap agent workloads with nono inside standard pods -- the pod provides the container boundary, and nono provides fine-grained agent-level control within it. The two layers compose naturally.
+
+OpenShell requires its own infrastructure. The supervisor needs `CAP_NET_ADMIN` for network namespaces and veth pairs. The deployment model assumes a K3s cluster running inside Docker. You cannot simply add OpenShell to an existing container.
+
+Nono is a composable primitive. OpenShell is a self-contained platform.
+
+---
+
+## Trust and Attestation
+
+### Nono
+
+A complete instruction file attestation system using Sigstore:
+
+- DSSE envelopes with in-toto Statements + Sigstore bundles
+- Two modes: keyed (keystore credentials) or keyless (OIDC + Fulcio + Rekor)
+- Trusted publishers with GitHub Actions OIDC identity verification
+- Runtime enforcement: pre-exec scan + seccomp-notify interception (Linux) + Seatbelt deny rules (macOS)
+- Trust policy: publishers, blocklist (SHA-256), enforcement levels (deny/warn/audit)
+- No TOFU: files must have a valid signature from a trusted publisher on first encounter
+
+This addresses the supply-chain threat of malicious instruction files (SKILLS.md, CLAUDE.md, AGENT.md) being ingested by AI agents.
+
+### OpenShell
+
+Binary identity verification via TOFU (trust on first use). SHA-256 hash of binary stored on first run, verified on subsequent runs. No cryptographic signing, no attestation chain.
+
+Nono's attestation system targets prompt injection through instruction files -- a threat specific to AI agent sandboxing that OpenShell does not address.
+
+---
+
+## Security Design: Trusted Computing Base
+
+The core security tradeoff is TCB size.
+
+**Nono's TCB:**
+- Single binary (nono-cli)
+- Kernel primitives (Landlock, seccomp, Seatbelt)
+- System keystore
+- Optional: container or microVM as outer layer
+
+**OpenShell's TCB:**
+- Docker
+- K3s (Kubernetes)
+- Gateway API server
+- gRPC policy sync
+- SSH server
+- OPA policy engine
+- Routing layer
+- TLS termination and HTTP rewriting
+
+More components isn't automatically worse -- it depends on what you need. But in a system whose whole purpose is security isolation, every component in the trusted base has to justify itself.
+
+### Fail-Secure Behavior
+
+Nono treats a missing sandbox as fatal. No Landlock? Abort. Seccomp install fails? Abort. There's no mode where the agent runs without isolation.
+
+OpenShell has a `BestEffort` mode where if Landlock is unavailable, the sandbox runs anyway without filesystem isolation. An agent that thinks it's sandboxed when it isn't is a worse outcome than one that refuses to start.
+
+---
+
+## Where OpenShell Is Stronger
+
+**Network isolation via namespaces.** The veth pair approach is stronger than localhost proxy filtering. All traffic must traverse the proxy -- there's no way to bypass it without a kernel exploit.
+
+**Policy expressiveness.** OPA/Rego supports L7 filtering -- specific HTTP methods on specific paths per endpoint, with per-binary identity binding. That's more expressive than host-based allowlists.
+
+**Live policy reload.** Hot-swap network policy without restarting the sandbox. Useful for long-running agents where policy needs to evolve mid-session.
+
+**Multi-sandbox orchestration.** Running dozens of concurrent sandboxes with centralized management is built in. Nono is a per-process tool -- you can run many instances, but there's no unified control plane.
+
+**Operational tooling.** Log aggregation, denial-to-policy recommendations, TUI dashboard, SSH access -- features needed for operating sandboxes at scale.
+
+## Where Nono Is Stronger
+
+**Transparent runtime expansion.** Intercepting system calls and expanding the sandbox without the agent knowing. Any agent can be sandboxed without modification. OpenShell has no equivalent.
+
+**Cross-platform.** Native macOS enforcement via Seatbelt. Not a Linux VM pretending to be local.
+
+**Deployment flexibility.** Single binary, no dependencies. Works on bare metal, in containers, in microVMs, in CI. Kernel primitives compose with whatever isolation layer you add.
+
+**Embeddability.** Policy-free library with multi-language bindings. Agent framework authors can integrate sandboxing directly rather than adopting a platform.
+
+**Unconditional credential isolation.** Real secrets never enter the sandbox regardless of proxy configuration. Memory-safe credential handling with `Zeroizing<String>`.
+
+**Instruction file attestation.** Sigstore-based cryptographic verification of instruction files addresses a threat vector specific to AI agents that OpenShell ignores.
+
+**Smaller TCB.** Fewer moving parts, fewer things to patch, fewer things to get wrong.
+
+**Security Pedigree** Nono is developed by a team with deep experience in OS security, container runtimes, and kernel security. The design is informed by years of hard lessons in production isolation systems.
+
+---
+
+## Bottom Line
+
+Nono and OpenShell solve the same problem -- sandboxing untrusted AI agents -- but make fundamentally different architectural bets.
+
+Nono bets on kernel primitives directly: Landlock, Seatbelt, seccomp-notify. No containers required, no orchestrators, no cluster -- but equally capable of running inside any of them. The result is a lightweight, embeddable tool with millisecond startup, minimal attack surface, and deployment flexibility from a developer's laptop to a fleet of cloud workloads. Its seccomp user notification implementation for transparent capability expansion is technically novel and not replicated in OpenShell.
+
+OpenShell bets on containerized infrastructure: Kubernetes pods, network namespaces, OPA policy engines. The result is a platform with stronger network isolation, more expressive policy, and better operational tooling. The tradeoff is complexity, startup time, resource overhead, a larger attack surface, and the requirement to own the infrastructure.
+
+If you need kernel-first isolation that works across platforms, adapts to any agent, requires no infrastructure, and doesn't have conditional security properties, that's what Nono is built for along with a rich feature set beyond just sandboxing -- supply-chain security, credential protections, attestation, and more.
+
+If you need a platform for managing many sandboxes with centralized policy, orchestrated lifecycle, and you're already running Docker and Kubernetes, OpenShell gives you that, however many in the nono community are now running nono inside Kubernetes with their own custom orchestration layer to get the best of both worlds.
+
+Both are open source, both are Apache 2.0. Try them both and see which fits your setup.
