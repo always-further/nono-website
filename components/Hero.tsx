@@ -16,7 +16,7 @@ export default function Hero() {
             <TextScramble text="nono" delay={200} scrambleDuration={1000} glitch />
           </h1>
           <p className="text-base md:text-lg text-muted max-w-2xl mx-auto leading-relaxed">
-            Runtime safety infrastructure for AI agents. Kernel-enforced isolation, supply-chain security, immutable auditing, atomic rollbacks, crendential management, and more.
+            Runtime safety infrastructure for AI agents. Kernel-enforced isolation, supply-chain security, immutable auditing, atomic rollbacks, credential management, and more.
           </p>
         </div>
 
