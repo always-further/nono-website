@@ -33,9 +33,9 @@ export default function Testimonials({ testimonials }: TestimonialsProps) {
           badge="Community"
           title="From the community"
         />
-        <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-background-secondary">
+        <div className="relative overflow-hidden border border-border">
           <div
-            className="flex transition-transform duration-700 ease-out"
+            className="flex transition-transform duration-500 ease-out"
             style={{ transform: `translateX(-${activeIndex * 100}%)` }}
           >
             {testimonials.map((testimonial, index) => (
@@ -47,20 +47,17 @@ export default function Testimonials({ testimonials }: TestimonialsProps) {
                   <Image
                     src={testimonial.avatar}
                     alt={`${testimonial.name} avatar`}
-                    width={42}
-                    height={42}
-                    className="h-[42px] w-[42px] rounded-full border border-border/70 object-cover shrink-0"
+                    width={36}
+                    height={36}
+                    className="h-9 w-9 rounded-full border border-border object-cover shrink-0"
                   />
 
                   <div>
-                    <p className="text-sm md:text-base font-light leading-relaxed text-[#d7dbe8]">
+                    <p className="text-sm font-light leading-relaxed text-foreground">
                       &ldquo;{testimonial.quote}&rdquo;
                     </p>
-                    <p className="mt-4 text-sm text-[#b8bfd3]">
-                      {testimonial.name}
-                    </p>
-                    <p className="text-sm text-[#9aa3ba]">
-                      {testimonial.role}
+                    <p className="mt-4 text-xs font-mono text-muted">
+                      {testimonial.name} -- {testimonial.role}
                     </p>
                   </div>
                 </div>
@@ -75,10 +72,10 @@ export default function Testimonials({ testimonials }: TestimonialsProps) {
               key={index}
               type="button"
               onClick={() => setActiveIndex(index)}
-              className={`h-2 rounded-full transition-all ${
+              className={`h-1 transition-all ${
                 activeIndex === index
-                  ? "w-8 bg-accent"
-                  : "w-2 bg-white/25 hover:bg-white/40"
+                  ? "w-8 bg-foreground"
+                  : "w-2 bg-muted/30 hover:bg-muted/50"
               }`}
               aria-label={`Go to testimonial ${index + 1}`}
             />

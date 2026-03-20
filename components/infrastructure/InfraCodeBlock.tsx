@@ -1,7 +1,6 @@
 "use client";
 
 import { Highlight, themes } from "prism-react-renderer";
-import { GlassCard } from "@/components/ui/GlassCard";
 
 interface InfraCodeBlockProps {
   code: string;
@@ -17,14 +16,9 @@ export function InfraCodeBlock({
   className,
 }: InfraCodeBlockProps) {
   return (
-    <GlassCard className={className}>
-      <div className="px-4 py-2.5 border-b border-border flex items-center gap-3">
-        <div className="flex gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
-          <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
-          <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
-        </div>
-        <span className="text-xs font-mono text-muted">
+    <div className={`border border-code-border bg-code-bg text-code-text ${className ?? ""}`}>
+      <div className="px-4 py-2 border-b border-code-border">
+        <span className="text-xs font-mono text-code-text/60">
           {filename ?? language}
         </span>
       </div>
@@ -44,6 +38,6 @@ export function InfraCodeBlock({
           </pre>
         )}
       </Highlight>
-    </GlassCard>
+    </div>
   );
 }

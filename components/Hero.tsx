@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
-import { AnimatedBackground } from "@/components/ui/AnimatedBackground";
 import { GradientButton } from "@/components/ui/GradientButton";
 import { InstallSnippet } from "@/components/hero/InstallSnippet";
 import { TextScramble } from "@/components/hero/TextScramble";
@@ -10,36 +9,20 @@ import { DOCS_URL } from "@/lib/site";
 
 export default function Hero() {
   return (
-    <section className="relative pt-28 pb-24 px-6 overflow-hidden ">
-      <AnimatedBackground variant="hero" />
+    <section className="relative pt-32 pb-24 px-6">
+      <div className="max-w-4xl mx-auto w-full text-center">
+        <div className="mb-12">
+          <h1 className="text-7xl md:text-8xl lg:text-9xl font-bold tracking-tighter mb-4 text-foreground font-mono leading-none">
+            <TextScramble text="nono" delay={200} scrambleDuration={1000} glitch />
+          </h1>
+          <p className="text-base md:text-lg text-muted max-w-2xl mx-auto leading-relaxed">
+            Runtime safety infrastructure for AI agents. Kernel-enforced isolation, supply-chain security, immutable auditing, atomic rollbacks, crendential management, and more.
+          </p>
+        </div>
 
-      {/* Radial vignette */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: "radial-gradient(ellipse at 50% 0%, transparent 40%, rgba(6,6,10,0.6) 100%)",
-        }}
-      />
-
-      <div className="relative z-10 max-w-5xl mx-auto w-full text-center">
-
-        <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold tracking-tighter mb-2 text-foreground">
-          <TextScramble text="nono" delay={200} scrambleDuration={1000} glitch />
-        </h1>
-
-        <h2 className="text-2xl md:text-4xl lg:text-5xl font-semibold tracking-tight mb-6 leading-tight">
-          Runtime Safety Infrastructure
-          <br />
-          <span className="text-muted">for AI Agents</span>
-        </h2>
-
-        <p className="text-base md:text-lg text-muted max-w-xl mx-auto mb-10 leading-relaxed">
-          Kernel-enforced isolation, immutable auditing, and atomic rollbacks &mdash; built into the CLI and native SDKs.
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row gap-3 mb-8 justify-center">
           <GradientButton href="https://github.com/always-further/nono" external size="lg">
-            Get Started <ArrowRight size={18} />
+            Get Started <ArrowRight size={16} />
           </GradientButton>
           <GradientButton href={DOCS_URL} external variant="outline" size="lg">
             Documentation

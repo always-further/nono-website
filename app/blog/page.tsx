@@ -29,18 +29,18 @@ export default function BlogIndexPage() {
       <Header />
       <main className="pt-24 pb-24 px-6">
         <div className="max-w-5xl mx-auto">
-          <div className="mb-16 pt-8">
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
+          <div className="mb-12 pt-8">
+            <h1 className="text-2xl font-mono font-bold uppercase tracking-tight mb-3">
               Blog
             </h1>
-            <p className="text-muted max-w-2xl leading-relaxed">
+            <p className="text-sm text-muted max-w-2xl">
               Technical writing on AI agent security, OS-level sandboxing, and
               secure infrastructure.
             </p>
           </div>
 
           {tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-12">
+            <div className="flex flex-wrap gap-2 mb-10">
               {tags.map((tag) => (
                 <TagBadge key={tag} tag={tag} linked={true} />
               ))}
@@ -48,7 +48,7 @@ export default function BlogIndexPage() {
           )}
 
           {posts.length === 0 ? (
-            <p className="text-muted text-center py-20">No posts yet.</p>
+            <p className="text-muted text-center py-20 font-mono text-sm">No posts yet.</p>
           ) : (
             <div className="grid md:grid-cols-3 gap-4">
               {featured && <BlogCard post={featured} featured />}
@@ -59,7 +59,7 @@ export default function BlogIndexPage() {
           )}
         </div>
       </main>
-      <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+      <div className="h-px bg-border" />
       <Footer />
     </>
   );

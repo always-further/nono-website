@@ -1,10 +1,8 @@
 import { getAllLessons } from "@/lib/academy";
-import { GlassCard } from "@/components/ui/GlassCard";
-import { SectionHeader } from "@/components/ui/SectionHeader";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
-import { Clock, ArrowRight, Signal } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -21,12 +19,6 @@ export const metadata: Metadata = {
   },
 };
 
-const difficultyColor = {
-  beginner: "text-emerald-400 border-emerald-400/30 bg-emerald-400/10",
-  intermediate: "text-amber-400 border-amber-400/30 bg-amber-400/10",
-  advanced: "text-red-400 border-red-400/30 bg-red-400/10",
-};
-
 export default function AcademyIndexPage() {
   const lessons = getAllLessons();
 
@@ -35,56 +27,46 @@ export default function AcademyIndexPage() {
       <Header />
       <main className="pt-24 pb-24 px-6">
         <div className="max-w-5xl mx-auto">
-          <div className="pt-8">
-            <SectionHeader
-              title="Academy"
-              subtitle="Structured educational content on AI agent security."
-              align="left"
-              scramble={false}
-            />
+          <div className="pt-8 mb-12">
+            <h1 className="text-2xl font-mono font-bold uppercase tracking-tight mb-3">
+              Academy
+            </h1>
+            <p className="text-sm text-muted max-w-2xl">
+              Structured educational content on AI agent security.
+            </p>
           </div>
 
           {lessons.length === 0 ? (
-            <p className="text-muted text-center py-20">
+            <p className="text-muted text-center py-20 font-mono text-sm">
               No lessons yet. Check back soon.
             </p>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="border border-border divide-y divide-border">
               {lessons.map((lesson) => (
-                <Link key={lesson.slug} href={`/academy/${lesson.slug}`}>
-                  <GlassCard hoverable className="p-6 h-full flex flex-col">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider border ${difficultyColor[lesson.difficulty]}`}
-                      >
-                        <Signal size={10} />
+                <Link
+                  key={lesson.slug}
+                  href={`/academy/${lesson.slug}`}
+                  className="flex items-center justify-between px-6 py-5 hover:bg-surface transition-colors group"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-1">
+                      <h2 className="text-sm font-mono font-semibold text-foreground">
+                        {lesson.title}
+                      </h2>
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-muted border border-border px-1.5 py-0.5">
                         {lesson.difficulty}
                       </span>
-                      {lesson.tags.slice(0, 2).map((tag) => (
-                        <span
-                          key={tag}
-                          className="text-[10px] text-muted/60 font-mono"
-                        >
-                          #{tag}
-                        </span>
-                      ))}
                     </div>
-                    <h2 className="text-lg font-semibold tracking-tight mb-2">
-                      {lesson.title}
-                    </h2>
-                    <p className="text-sm text-muted leading-relaxed mb-4 flex-1">
+                    <p className="text-xs text-muted line-clamp-1">
                       {lesson.description}
                     </p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted/70 font-mono flex items-center gap-1.5">
-                        <Clock size={12} />
-                        {lesson.duration}
-                      </span>
-                      <span className="text-xs text-accent flex items-center gap-1">
-                        Start lesson <ArrowRight size={12} />
-                      </span>
-                    </div>
-                  </GlassCard>
+                  </div>
+                  <div className="flex items-center gap-4 shrink-0 ml-4">
+                    <span className="text-xs font-mono text-muted hidden sm:block">
+                      {lesson.duration}
+                    </span>
+                    <ArrowRight size={14} className="text-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
                 </Link>
               ))}
             </div>

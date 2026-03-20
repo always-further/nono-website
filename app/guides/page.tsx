@@ -1,10 +1,8 @@
 import { getAllGuides } from "@/lib/guides";
-import { GlassCard } from "@/components/ui/GlassCard";
-import { SectionHeader } from "@/components/ui/SectionHeader";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
-import { Clock, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -29,38 +27,39 @@ export default function GuidesIndexPage() {
       <Header />
       <main className="pt-24 pb-24 px-6">
         <div className="max-w-5xl mx-auto">
-          <div className="pt-8">
-            <SectionHeader
-              title="Guides"
-              subtitle="Long-form technical guides on AI agent security, sandboxing, and runtime governance."
-              align="left"
-              scramble={false}
-            />
+          <div className="pt-8 mb-12">
+            <h1 className="text-2xl font-mono font-bold uppercase tracking-tight mb-3">
+              Guides
+            </h1>
+            <p className="text-sm text-muted max-w-2xl">
+              Long-form technical guides on AI agent security, sandboxing, and runtime governance.
+            </p>
           </div>
 
           {guides.length === 0 ? (
-            <p className="text-muted text-center py-20">No guides yet.</p>
+            <p className="text-muted text-center py-20 font-mono text-sm">No guides yet.</p>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="border border-border divide-y divide-border">
               {guides.map((guide) => (
-                <Link key={guide.slug} href={`/guides/${guide.slug}`}>
-                  <GlassCard hoverable className="p-6 h-full flex flex-col">
-                    <h2 className="text-lg font-semibold tracking-tight mb-2 group-hover:text-accent transition-colors">
+                <Link
+                  key={guide.slug}
+                  href={`/guides/${guide.slug}`}
+                  className="flex items-center justify-between px-6 py-5 hover:bg-surface transition-colors group"
+                >
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-sm font-mono font-semibold text-foreground mb-1">
                       {guide.title}
                     </h2>
-                    <p className="text-sm text-muted leading-relaxed mb-4 flex-1">
+                    <p className="text-xs text-muted line-clamp-1">
                       {guide.description}
                     </p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted/70 font-mono flex items-center gap-1.5">
-                        <Clock size={12} />
-                        {guide.readingTime}
-                      </span>
-                      <span className="text-xs text-accent flex items-center gap-1">
-                        Read guide <ArrowRight size={12} />
-                      </span>
-                    </div>
-                  </GlassCard>
+                  </div>
+                  <div className="flex items-center gap-4 shrink-0 ml-4">
+                    <span className="text-xs font-mono text-muted hidden sm:block">
+                      {guide.readingTime}
+                    </span>
+                    <ArrowRight size={14} className="text-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
                 </Link>
               ))}
             </div>

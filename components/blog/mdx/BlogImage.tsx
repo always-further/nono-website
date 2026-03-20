@@ -19,7 +19,7 @@ export function BlogImage({
 
   return (
     <figure className="my-8">
-      <div className="relative rounded-xl overflow-hidden border border-border">
+      <div className="relative overflow-hidden border border-border">
         <Image
           src={src}
           alt={alt}
@@ -30,7 +30,7 @@ export function BlogImage({
         />
       </div>
       {caption && (
-        <figcaption className="text-center text-xs text-muted mt-3">
+        <figcaption className="text-center text-xs font-mono text-muted mt-3">
           {caption}
         </figcaption>
       )}

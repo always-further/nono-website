@@ -19,18 +19,17 @@ export function InstallSnippet() {
   }
 
   return (
-    <div className="w-full max-w-lg mx-auto mt-10">
-      <div className="rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] backdrop-blur-xl overflow-hidden">
-        {/* Tabs */}
-        <div className="flex border-b border-[rgba(255,255,255,0.08)]">
+    <div className="w-full max-w-md mx-auto mt-10">
+      <div className="border border-code-border bg-code-bg text-code-text">
+        <div className="flex border-b border-code-border">
           {tabs.map((tab, i) => (
             <button
               key={tab.label}
               onClick={() => setActive(i)}
-              className={`px-5 py-2.5 text-sm font-medium transition-colors ${
+              className={`px-4 py-2 text-xs font-mono uppercase tracking-wider transition-colors ${
                 i === active
-                  ? "text-foreground bg-[rgba(255,255,255,0.06)]"
-                  : "text-muted/60 hover:text-muted"
+                  ? "text-code-text bg-white/5"
+                  : "text-code-text/50 hover:text-code-text"
               }`}
             >
               {tab.label}
@@ -38,18 +37,17 @@ export function InstallSnippet() {
           ))}
         </div>
 
-        {/* Command */}
-        <div className="flex items-center justify-between px-4 py-3.5">
-          <code className="font-mono text-sm text-muted/80">
-            <span className="text-foreground/40 mr-2">&gt;</span>
+        <div className="flex items-center justify-between px-4 py-3">
+          <code className="font-mono text-sm text-code-text/80">
+            <span className="text-code-text/40 mr-2">$</span>
             {tabs[active].command}
           </code>
           <button
             onClick={handleCopy}
-            className="ml-4 p-1.5 text-muted/40 hover:text-foreground/70 transition-colors flex-shrink-0"
+            className="ml-4 p-1 text-code-text/40 hover:text-code-text transition-colors flex-shrink-0"
             aria-label="Copy to clipboard"
           >
-            {copied ? <Check size={16} /> : <Copy size={16} />}
+            {copied ? <Check size={14} /> : <Copy size={14} />}
           </button>
         </div>
       </div>

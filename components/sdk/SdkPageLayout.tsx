@@ -1,8 +1,6 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { AnimatedBackground } from "@/components/ui/AnimatedBackground";
 import { GradientButton } from "@/components/ui/GradientButton";
-import { GlassCard } from "@/components/ui/GlassCard";
 import { DOCS_URL } from "@/lib/site";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -29,35 +27,34 @@ export function SdkPageLayout({
       <Header />
       <main>
         {/* Hero */}
-        <section className="relative pt-32 pb-16 px-6 overflow-hidden">
-          <AnimatedBackground variant="subtle" />
-          <div className="relative max-w-6xl mx-auto">
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border border-accent/30 text-accent bg-accent/5 mb-6">
+        <section className="pt-32 pb-16 px-6">
+          <div className="max-w-6xl mx-auto">
+            <span className="inline-block text-xs font-mono uppercase tracking-[0.2em] text-muted mb-4">
               {language} SDK
             </span>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-5 max-w-3xl">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-mono font-bold uppercase tracking-tight mb-4 max-w-3xl">
               Runtime Safety for {language} AI Agents
             </h1>
-            <p className="text-lg text-muted leading-relaxed max-w-2xl mb-8">
+            <p className="text-sm text-muted leading-relaxed max-w-2xl mb-6">
               Enforce kernel-level isolation, network filtering, and atomic
               rollbacks from {language} with{" "}
-              <code className="px-1.5 py-0.5 rounded bg-code-bg border border-border font-mono text-sm">
+              <code className="px-1.5 py-0.5 bg-code-bg border border-code-border font-mono text-xs text-code-text">
                 {packageName}
               </code>
               .
             </p>
 
             <div className="flex items-center gap-4">
-              <GlassCard className="inline-flex items-center px-5 py-3">
-                <code className="font-mono text-sm text-foreground">
+              <div className="inline-flex items-center px-4 py-2.5 border border-code-border bg-code-bg">
+                <code className="font-mono text-sm text-code-text">
                   {installCommand}
                 </code>
-              </GlassCard>
+              </div>
               <a
                 href={registryUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-accent hover:text-accent-hover transition-colors whitespace-nowrap"
+                className="text-xs font-mono text-muted hover:text-foreground transition-colors whitespace-nowrap"
               >
                 {registryName} &rarr;
               </a>
@@ -65,69 +62,79 @@ export function SdkPageLayout({
           </div>
         </section>
 
+        <div className="h-px bg-border mx-6 max-w-6xl lg:mx-auto" />
+
         {/* Content */}
-        <section className="px-6 pb-24">
+        <section className="px-6 py-16">
           <div className="max-w-6xl mx-auto">{children}</div>
         </section>
 
         {/* Related */}
         <section className="px-6 pb-16">
           <div className="max-w-6xl mx-auto">
-            <h2 className="text-xl font-semibold tracking-tight mb-6">
+            <h2 className="text-sm font-mono uppercase tracking-[0.15em] text-foreground mb-6">
               Related
             </h2>
-            <div className="grid sm:grid-cols-3 gap-4">
+            <div className="border border-border divide-y divide-border">
               {[
                 {
                   href: "/linux-sandbox",
                   label: "Linux Sandbox",
                   desc: "How kernel isolation works under the hood",
+                  external: false,
                 },
                 {
                   href: DOCS_URL,
                   label: "API Reference",
                   desc: "Full SDK documentation",
+                  external: true,
                 },
                 {
                   href: "/guides/safe-ai-agent-execution",
                   label: "Getting Started Guide",
                   desc: "End-to-end walkthrough",
+                  external: false,
                 },
-              ].map((item) => (
-                item.href === DOCS_URL ? (
-                  <a key={item.href} href={item.href}>
-                    <GlassCard hoverable className="p-6 h-full">
-                      <h3 className="font-semibold mb-1">{item.label}</h3>
-                      <p className="text-sm text-muted mb-3">{item.desc}</p>
-                      <span className="text-xs text-accent flex items-center gap-1">
-                        Learn more <ArrowRight size={12} />
-                      </span>
-                    </GlassCard>
+              ].map((item) =>
+                item.external ? (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between px-6 py-4 hover:bg-surface transition-colors group"
+                  >
+                    <div>
+                      <h3 className="text-sm font-mono font-medium text-foreground">{item.label}</h3>
+                      <p className="text-xs text-muted mt-0.5">{item.desc}</p>
+                    </div>
+                    <ArrowRight size={14} className="text-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                   </a>
                 ) : (
-                  <Link key={item.href} href={item.href}>
-                    <GlassCard hoverable className="p-6 h-full">
-                      <h3 className="font-semibold mb-1">{item.label}</h3>
-                      <p className="text-sm text-muted mb-3">{item.desc}</p>
-                      <span className="text-xs text-accent flex items-center gap-1">
-                        Learn more <ArrowRight size={12} />
-                      </span>
-                    </GlassCard>
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="flex items-center justify-between px-6 py-4 hover:bg-surface transition-colors group"
+                  >
+                    <div>
+                      <h3 className="text-sm font-mono font-medium text-foreground">{item.label}</h3>
+                      <p className="text-xs text-muted mt-0.5">{item.desc}</p>
+                    </div>
+                    <ArrowRight size={14} className="text-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                   </Link>
-                )
-              ))}
+                ),
+              )}
             </div>
           </div>
         </section>
 
         {/* CTA */}
-        <section className="relative px-6 py-20 overflow-hidden">
-          <AnimatedBackground variant="subtle" />
-          <div className="relative max-w-2xl mx-auto text-center">
-            <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-4">
+        <section className="px-6 py-20 border-t border-border">
+          <div className="max-w-2xl mx-auto text-center">
+            <h2 className="text-xl font-mono font-bold uppercase tracking-tight mb-4">
               Ship safer agents today
             </h2>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <GradientButton href={DOCS_URL} external>Read the Docs</GradientButton>
               <GradientButton
                 variant="outline"

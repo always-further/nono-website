@@ -21,25 +21,25 @@ export function getMdxComponents(): MDXComponents {
     h4: (props) => <Anchor level={4} {...props} />,
     img: BlogImage as MDXComponents["img"],
     table: ({ children }) => (
-      <div className="my-6 overflow-x-auto rounded-xl border border-border bg-[rgba(255,255,255,0.02)]">
+      <div className="my-6 overflow-x-auto border border-border">
         <table className="w-full text-sm border-collapse">{children}</table>
       </div>
     ),
     thead: ({ children }) => (
-      <thead className="bg-[rgba(255,255,255,0.05)] border-b border-border">{children}</thead>
+      <thead className="border-b border-border">{children}</thead>
     ),
     th: ({ children }) => (
-      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-foreground/70">{children}</th>
+      <th className="px-4 py-3 text-left text-xs font-mono font-semibold uppercase tracking-wider text-foreground">{children}</th>
     ),
     tbody: ({ children }) => <tbody>{children}</tbody>,
     tr: ({ children }) => (
       <tr className="border-b border-border last:border-b-0">{children}</tr>
     ),
     td: ({ children }) => (
-      <td className="px-4 py-3 text-muted-strong">{children}</td>
+      <td className="px-4 py-3 text-muted">{children}</td>
     ),
     blockquote: ({ children }) => (
-      <blockquote className="border-l-2 border-accent pl-6 my-6 text-muted italic">
+      <blockquote className="border-l-2 border-foreground pl-6 my-6 text-muted italic">
         {children}
       </blockquote>
     ),
@@ -56,28 +56,28 @@ export function getMdxComponents(): MDXComponents {
       <Admonition type="danger" title={title}>{children}</Admonition>
     ),
     p: ({ children }) => (
-      <p className="text-muted leading-relaxed mb-4">{children}</p>
+      <p className="text-muted text-sm leading-relaxed mb-4">{children}</p>
     ),
     ul: ({ children }) => (
-      <ul className="list-disc list-outside pl-6 mb-4 space-y-1 text-muted">
+      <ul className="list-disc list-outside pl-6 mb-4 space-y-1 text-muted text-sm">
         {children}
       </ul>
     ),
     ol: ({ children }) => (
-      <ol className="list-decimal list-outside pl-6 mb-4 space-y-1 text-muted">
+      <ol className="list-decimal list-outside pl-6 mb-4 space-y-1 text-muted text-sm">
         {children}
       </ol>
     ),
     li: ({ children }) => <li className="leading-relaxed">{children}</li>,
     iframe: (props: React.IframeHTMLAttributes<HTMLIFrameElement>) => (
-      <div className="my-8 p-4 aspect-video w-full max-w-2xl">
+      <div className="my-8 aspect-video w-full max-w-2xl">
         <iframe
           src={props.src}
           title={props.title}
           allow={props.allow}
           loading={props.loading as "lazy" | "eager" | undefined}
           allowFullScreen
-          className="w-full h-full rounded-lg border border-border"
+          className="w-full h-full border border-border"
         />
       </div>
     ),
@@ -85,7 +85,7 @@ export function getMdxComponents(): MDXComponents {
     a: ({ href, children }) => (
       <a
         href={href}
-        className="text-accent hover:text-accent-hover underline underline-offset-2 transition-colors"
+        className="text-foreground underline underline-offset-2 hover:text-muted transition-colors"
         target={href?.startsWith("http") ? "_blank" : undefined}
         rel={href?.startsWith("http") ? "noopener noreferrer" : undefined}
       >

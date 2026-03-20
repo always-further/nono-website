@@ -98,12 +98,12 @@ export default async function BlogPostPage({ params }: PageProps) {
 
           <article className="mt-10">{content}</article>
 
-          <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent mt-16 mb-12" />
+          <div className="h-px bg-border mt-16 mb-12" />
 
           {relatedPosts.length > 0 && <RelatedPosts posts={relatedPosts} />}
         </div>
       </main>
-      <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+      <div className="h-px bg-border" />
       <Footer />
     </>
   );

@@ -13,9 +13,9 @@ interface GradientButtonProps {
 }
 
 const sizeClasses = {
-  sm: "px-4 py-2 text-sm",
-  md: "px-6 py-3 text-sm",
-  lg: "px-8 py-3.5 text-base",
+  sm: "px-4 py-2 text-xs",
+  md: "px-5 py-2.5 text-sm",
+  lg: "px-6 py-3 text-sm",
 };
 
 export function GradientButton({
@@ -28,12 +28,12 @@ export function GradientButton({
   className,
 }: GradientButtonProps) {
   const baseClasses = cn(
-    "inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-all duration-300 relative",
+    "inline-flex items-center justify-center gap-2 font-mono font-medium transition-all duration-200 relative tracking-tight",
     sizeClasses[size],
     variant === "primary" &&
-      "text-black bg-white shadow-[0_0_25px_rgba(255,255,255,0.15)] hover:shadow-[0_0_40px_rgba(255,255,255,0.25)] hover:scale-[1.02]",
+      "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] hover:bg-[var(--btn-primary-hover)]",
     variant === "outline" &&
-      "border border-[rgba(255,255,255,0.1)] text-foreground backdrop-blur-sm bg-[rgba(255,255,255,0.03)] hover:border-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.06)] hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]",
+      "border border-border-strong text-foreground hover:bg-surface hover:border-foreground",
     className,
   );
   const isDocsLink =
