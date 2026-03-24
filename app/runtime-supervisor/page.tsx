@@ -20,8 +20,8 @@ export const metadata: Metadata = {
 
 const relatedPages = [
   {
-    href: "/linux-sandbox",
-    label: "Linux Sandbox",
+    href: "/os-sandbox",
+    label: "Linux/MacOS Sandbox",
     description: "Kernel-level filesystem isolation",
   },
   {

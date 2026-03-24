@@ -6,12 +6,12 @@ import { Lock, Layers } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Linux Sandbox - Kernel-Level Isolation for AI Agents",
+  title: "Linux/MacOS Sandbox - Kernel-Level Isolation for AI Agents",
   description:
     "How nono uses Linux Landlock and macOS Seatbelt to create irrevocable, kernel-enforced sandboxes for AI coding agents.",
-  alternates: { canonical: "/linux-sandbox" },
+  alternates: { canonical: "/os-sandbox" },
   openGraph: {
-    title: "Linux Sandbox - Kernel-Level Isolation for AI Agents",
+    title: "Linux/MacOS Sandbox - Kernel-Level Isolation for AI Agents",
     description:
       "How nono uses Linux Landlock and macOS Seatbelt to create irrevocable, kernel-enforced sandboxes for AI coding agents.",
     type: "website",

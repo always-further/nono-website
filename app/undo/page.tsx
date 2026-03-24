@@ -25,8 +25,8 @@ const relatedPages = [
     description: "Cryptographic session logging",
   },
   {
-    href: "/linux-sandbox",
-    label: "Linux Sandbox",
+    href: "/os-sandbox",
+    label: "Linux/MacOS Sandbox",
     description: "Kernel-level filesystem isolation",
   },
   {

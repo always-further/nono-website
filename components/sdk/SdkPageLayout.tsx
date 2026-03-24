@@ -78,8 +78,8 @@ export function SdkPageLayout({
             <div className="border border-border divide-y divide-border">
               {[
                 {
-                  href: "/linux-sandbox",
-                  label: "Linux Sandbox",
+                  href: "/os-sandbox",
+                  label: "Linux/MacOS Sandbox",
                   desc: "How kernel isolation works under the hood",
                   external: false,
                 },

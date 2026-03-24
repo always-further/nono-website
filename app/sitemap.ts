@@ -11,7 +11,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const academyTags = getAllAcademyTags();
 
   const infraPages = [
-    "linux-sandbox",
+    "os-sandbox",
     "undo",
     "audit-trail",
     "provenance",

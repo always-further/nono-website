@@ -46,8 +46,8 @@ interface NavItem {
 
 const infraDropdown: DropdownItem[] = [
   {
-    href: "/linux-sandbox",
-    label: "Linux Sandbox",
+    href: "/os-sandbox",
+    label: "Linux/MacOS Sandbox",
     description: "Landlock & Seatbelt kernel isolation",
     icon: Lock,
   },

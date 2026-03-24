@@ -28,7 +28,7 @@ Every page on nono.sh MUST include the following. The `test:seo` script enforces
 - OG type: `"article"` with `publishedTime`
 - `BreadcrumbSchema` JSON-LD: Home → Academy → Lesson Title
 
-### Infrastructure Pages (`/linux-sandbox`, `/undo`, `/audit-trail`, `/provenance`, `/runtime-supervisor`)
+### Infrastructure Pages (`/os-sandbox`, `/undo`, `/audit-trail`, `/provenance`, `/runtime-supervisor`)
 
 - OG type: `"website"`
 - OG image: `/logo.png` (or page-specific if available)
@@ -86,7 +86,7 @@ Content pages add their own:
 
 Use `|` not `-` as the separator. Examples:
 - Homepage: `Next-Generation Agent Security | nono`
-- Child page: `Linux Sandbox - Kernel-Level Isolation for AI Agents | nono`
+- Child page: `Linux/MacOS Sandbox - Kernel-Level Isolation for AI Agents | nono`
 - Blog post: `Post Title | nono` (via template)
 
 ### Internal Linking

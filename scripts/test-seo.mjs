@@ -92,7 +92,7 @@ testPage('Homepage', 'index.html', (html) => {
 // ── Infrastructure pages ──
 
 const infraPages = [
-  { name: 'Linux Sandbox', path: 'linux-sandbox/index.html' },
+  { name: 'Linux/MacOS Sandbox', path: 'os-sandbox/index.html' },
   { name: 'Undo & Rollback', path: 'undo/index.html' },
   { name: 'Audit Trail', path: 'audit-trail/index.html' },
   { name: 'Provenance', path: 'provenance/index.html' },

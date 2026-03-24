@@ -9,7 +9,7 @@ tags: ["Security", "AI Agents", "Sandboxing", "Claude Code", "nono", "Profiles"]
 
 # Sandboxing AI Agents with nono: From Discovery to Production Profiles
 
-AI agents that write code, run commands, and interact with your filesystem need guardrails. Without them, a single hallucinated `rm -rf` or an unintended credential read can cause real damage. **nono** is a capability-based sandboxing system that uses [OS-enforced isolation](/linux-sandbox) (Landlock on Linux, Seatbelt on macOS) to make unauthorized operations structurally impossible.
+AI agents that write code, run commands, and interact with your filesystem need guardrails. Without them, a single hallucinated `rm -rf` or an unintended credential read can cause real damage. **nono** is a capability-based sandboxing system that uses [OS-enforced isolation](/os-sandbox) (Landlock on Linux, Seatbelt on macOS) to make unauthorized operations structurally impossible.
 
 This post walks through the three tools that take you from "I have no idea what my agent touches" to "I have a locked-down profile ready for production": `nono learn`, `nono policy`, and `nono profile`.
 

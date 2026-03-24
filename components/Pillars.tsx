@@ -10,7 +10,7 @@ const pillars = [
     icon: Shield,
     title: "Kernel Isolation",
     description: "Landlock and Seatbelt enforce irrevocable allow-lists at the kernel level.",
-    href: "/linux-sandbox",
+    href: "/os-sandbox",
   },
   {
     icon: RotateCcw,

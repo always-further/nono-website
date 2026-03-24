@@ -35,7 +35,7 @@ const columns: FooterColumn[] = [
   {
     title: "Infrastructure",
     links: [
-      { label: "Linux Sandbox", href: "/linux-sandbox" },
+      { label: "Linux/MacOS Sandbox", href: "/os-sandbox" },
       { label: "Undo & Rollback", href: "/undo" },
       { label: "Audit Trail", href: "/audit-trail" },
       { label: "Provenance", href: "/provenance" },
