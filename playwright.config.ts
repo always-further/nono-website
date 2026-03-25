@@ -9,7 +9,7 @@ export default defineConfig({
     baseURL: "http://127.0.0.1:3000",
     trace: "on-first-retry",
   },
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 2 : undefined,
   webServer: {
     command: process.env.CI
       ? "npm run start:test"
