@@ -21,7 +21,7 @@ That's what [nono](https://nono.sh) does. This post walks through how I used it 
 
 It's about 400 lines of Python across four files:
 
-```
+```text
 bot.py          — Flask server, HMAC validation, pipeline orchestration
 triage.py       — Gemini API call, response parsing
 context.py      — context assembly (project docs, recent issues, GEMINI.md)
@@ -53,7 +53,7 @@ The rest of this post is about what happens when you wrap this bot with nono.
 
 ## nono in one paragraph
 
-nono is a sandboxing tool for processes — AI agents in particular. Unlike guardrails that block *instructions*, nono enforces restrictions at the OS kernel level using Landlock LSM on Linux and Seatbelt on macOS. Once a process is sandboxed, the restrictions cannot be escalated from inside the process. There's no API to call, no env var to set. The kernel simply denies the syscall.
+nono is a sandboxing tool for processes — AI agents in particular. Unlike guardrails that block *instructions*, nono enforces restrictions at the OS kernel level using Landlock LSM on Linux and Seatbelt on macOS. You declare which filesystem paths a process can read or write and which network hosts it can reach; everything else is denied by the kernel. Once applied, the restrictions cannot be escalated from inside the process. There's no API to call, no env var to set. The kernel simply denies the syscall.
 
 nono also provides two higher-level features that are particularly relevant for LLM bots: supply chain trust verification (so instruction files must be cryptographically signed before the process can read them) and credential injection (so real API keys are pulled from your keychain rather than passed on the command line).
 
@@ -61,21 +61,19 @@ nono also provides two higher-level features that are particularly relevant for 
 
 ## Feature 1: Sandbox Profile
 
-### What it is
-
-A nono *profile* is a JSON file that declares exactly what a process is allowed to do: which filesystem paths it can read or write, which network hosts it can reach. Everything else is denied at the kernel level.
-
 ### Generating the profile
+
+A nono [profile](https://nono.sh/docs/cli/features/profiles-groups) is a JSON file that declares exactly what a process is allowed to do. Everything else is denied at the kernel level.
 
 The easiest way to build a profile is `nono learn`:
 
 ```bash
-nono learn --timeout 60 -- .venv/bin/python3 bot.py
+nono learn --timeout 60 --json -- .venv/bin/python3 bot.py
 ```
 
 While the bot runs (send a test webhook to exercise the full code path), nono traces every filesystem access and every DNS lookup, then prints a summary. For gitbot, that trace produces:
 
-```
+```text
 Filesystem (read):
   /private/etc/ssl/cert.pem
   /private/etc/resolv.conf
@@ -87,10 +85,9 @@ Filesystem (write):
 Network:
   api.github.com:443
   generativelanguage.googleapis.com:443
-  nono.sh:443
 ```
 
-I turned that trace into `gitbot-profile.json`:
+I turned that trace into a starting point for `gitbot-profile.json` — we'll add credential routes to it in Feature 3:
 
 ```json
 {
@@ -111,45 +108,23 @@ I turned that trace into `gitbot-profile.json`:
     "allow_hosts": [
       "api.github.com",
       "generativelanguage.googleapis.com",
-      "nono.sh",
       "smee.io"
-    ],
-    "proxy_credentials": ["gemini"],
-    "custom_credentials": {
-      "github": {
-        "upstream": "https://api.github.com",
-        "credential_key": "github_token",
-        "inject_mode": "header",
-        "inject_header": "Authorization",
-        "credential_format": "Bearer {}"
-      }
-    }
+    ]
   }
 }
 ```
 
 The `add_deny_access` block is important: it explicitly blocks the directories where credentials typically live. Even though the bot has no code to read `~/.ssh`, if a compromised dependency *did* try to read it, the kernel would return `EPERM`.
 
-The `proxy_credentials` and `custom_credentials` blocks declare proxy credential routes — one built-in (Gemini) and one custom (GitHub). When nono starts, it launches a localhost reverse proxy that intercepts outbound API calls, validates a per-session phantom token, and injects the real credential before forwarding upstream. The bot never sees the real API keys — more on this in Feature 3.
-
-Note that the profile no longer needs `filesystem.read` entries for system Python paths. With a uv-managed `.venv` inside the project directory, the virtualenv is covered by `workdir.access: readwrite`.
-
-### Setting up the project
-
-```bash
-git clone https://github.com/always-further/gitbot-nono && cd gitbot-nono
-uv sync
-cp .env.example .env   # fill in WEBHOOK_SECRET and GITHUB_REPO
-```
+With a uv-managed `.venv` inside the project directory, the virtualenv is covered by `workdir.access: readwrite` — no need for separate `filesystem.read` entries for system Python paths.
 
 ### Running under the profile
 
-Non-secret configuration like `WEBHOOK_SECRET` and `GITHUB_REPO` can live in a `.env` file in the project directory. API credentials (`GITHUB_TOKEN`, `GEMINI_API_KEY`) must *not* be in `.env` — under proxy mode, nono injects phantom tokens for these, and real values in `.env` would shadow them.
+At this point you can already sandbox the bot — credentials are still passed as plain environment variables (we'll fix that in Feature 3), but the filesystem and network are locked down:
 
 ```bash
+GITHUB_TOKEN=ghp_... GEMINI_API_KEY=... \
 nono run --profile gitbot-profile.json --allow-cwd --listen-port 5001 \
-  --proxy-credential gemini \
-  --proxy-credential github \
   -- .venv/bin/python3 bot.py
 ```
 
@@ -180,13 +155,19 @@ This is prompt injection via the filesystem. The source is indirect (a file rath
 
 nono uses Sigstore-style ECDSA signing to verify file integrity. Signing creates a `.bundle` sidecar containing the signature and the signer's public key. Before the process starts, nono scans the instruction files declared in `trust-policy.json`. If any have been modified since signing, the process doesn't start.
 
-### Setting up your own signing key
+### Setting up trust
+
+nono trust works in two layers: a *user-level* policy that establishes who you trust, and a *project-level* policy that declares which files need verification. The user-level policy acts as your personal trust anchor — without it, nono warns that project policies aren't authoritative. See the [trust docs](https://nono.sh/docs/cli/features/trust) for the full model.
 
 ```bash
 # Generate a keypair — stored in nono's keystore as 'default', no file to commit
 nono trust keygen
 
-# Export your public key to embed in trust-policy.json
+# Create and sign your user-level policy (one-time setup)
+nono trust init --user
+nono trust sign-policy --user
+
+# Export your public key to embed in the project's trust-policy.json
 nono trust export-key
 ```
 
@@ -241,44 +222,7 @@ nono run ...  # succeeds
 
 The process exits before it can read the instruction file. No tampered prompt reaches the LLM.
 
-### The upgrade path: CI keyless signing
-
-The local keypair is fine for development, but in production you want the signing identity tied to your CI pipeline, not a developer's laptop. With GitHub Actions OIDC, the signature proves "this file was signed by workflow X on branch main" — no key rotation needed:
-
-```yaml
-# .github/workflows/sign-instructions.yml
-on:
-  push:
-    paths: ['GEMINI.md']
-    branches: [main]
-permissions:
-  id-token: write
-  contents: write
-jobs:
-  sign:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: always-further/nono-attest@v1
-        with: { files: GEMINI.md }
-      - run: git add GEMINI.md.bundle && git commit -m "Auto-sign" && git push
-```
-
-And in `trust-policy.json`, replace the local key with the OIDC issuer:
-
-```json
-{
-  "publishers": [{
-    "name": "ci-signing",
-    "issuer": "https://token.actions.githubusercontent.com",
-    "repository": "always-further/gitbot-nono",
-    "workflow": ".github/workflows/sign-instructions.yml",
-    "ref_pattern": "refs/heads/main"
-  }]
-}
-```
-
-Now only the CI pipeline on `main` can sign — a developer's local key is no longer in the trust chain.
+For production, you can replace the local keypair with CI keyless signing via GitHub Actions OIDC — see [GitHub Actions integration](https://nono.sh/docs/cli/features/trust#github-actions-integration).
 
 ---
 
@@ -286,13 +230,13 @@ Now only the CI pipeline on `main` can sign — a developer's local key is no lo
 
 ### The problem
 
-The bot needs a GitHub token and a Gemini API key. If you pass them as environment variables on the command line (`GITHUB_TOKEN=ghp_... nono run ...`), they're visible in `ps aux`, shell history, and CI logs. A compromised dependency could also read `os.environ` directly. Even `--env-credential-map` (nono's simpler injection mode) places real secrets in the process environment, where they're readable via `/proc/PID/environ` on Linux.
+With Feature 1, the bot's filesystem and network are locked down — but the credentials are still exposed. In the sandbox run command above, `GITHUB_TOKEN=ghp_...` is visible in `ps aux`, shell history, and CI logs. A compromised dependency can still read `os.environ` and exfiltrate the real tokens over an allowed network host. Even `--env-credential-map` (nono's simpler injection mode) places real secrets in the process environment, where they're readable via `/proc/PID/environ` on Linux.
+
+We need the credentials to never enter the sandbox at all. nono solves this with *phantom tokens* — for a deeper dive, see [Credential Injection](/blog/blog-credential-injection).
 
 ### How phantom tokens work
 
-nono's proxy credential injection takes a different approach: the real credentials never enter the sandbox at all.
-
-When nono starts, it launches a localhost reverse proxy and generates a cryptographically random 256-bit session token. The sandboxed process receives environment variables pointing to the proxy (`GITHUB_BASE_URL=http://127.0.0.1:PORT/github`) and a phantom token (`GITHUB_TOKEN=<64-char-hex>`). When the bot's HTTP client sends a request to the proxy with the phantom token in the `Authorization` header, the proxy validates the token, strips it, injects the real credential from the keychain, and forwards the request to the upstream API over TLS.
+nono's proxy credential injection takes a different approach. When nono starts, it launches a localhost reverse proxy and generates a cryptographically random 256-bit session token. The sandboxed process receives environment variables pointing to the proxy (`GITHUB_BASE_URL=http://127.0.0.1:PORT/github`) and a phantom token (`GITHUB_TOKEN=<64-char-hex>`). When the bot's HTTP client sends a request to the proxy with the phantom token in the `Authorization` header, the proxy validates the token, strips it, injects the real credential from the keychain, and forwards the request to the upstream API over TLS.
 
 The phantom token is worthless outside the session — it only authenticates with the localhost proxy, which only lives for the duration of the nono process.
 
@@ -310,28 +254,45 @@ security add-generic-password -s "nono" -a "gemini" -w "your_gemini_key" -T /opt
 
 The `-T` flag grants the nono binary keychain access without prompting. Without it, macOS will show a dialog on first access — clicking "Always Allow" works too.
 
-### Profile configuration
+### Adding credential routes to the profile
 
-The credential routes are declared in `gitbot-profile.json`. Gemini uses nono's built-in route (`proxy_credentials`), while GitHub uses a custom credential definition:
+To enable phantom tokens, add `proxy_credentials` and `custom_credentials` to the `network` block in `gitbot-profile.json`. Gemini uses nono's built-in route, while GitHub uses a custom credential definition:
 
 ```json
-"proxy_credentials": ["gemini"],
-"custom_credentials": {
-  "github": {
-    "upstream": "https://api.github.com",
-    "credential_key": "github_token",
-    "inject_mode": "header",
-    "inject_header": "Authorization",
-    "credential_format": "Bearer {}"
+"network": {
+  "allow_hosts": [
+    "api.github.com",
+    "generativelanguage.googleapis.com",
+    "smee.io"
+  ],
+  "proxy_credentials": ["gemini"],
+  "custom_credentials": {
+    "github": {
+      "upstream": "https://api.github.com",
+      "credential_key": "github_token",
+      "inject_mode": "header",
+      "inject_header": "Authorization",
+      "credential_format": "Bearer {}"
+    }
   }
 }
 ```
 
 The built-in `gemini` route knows the upstream URL (`generativelanguage.googleapis.com`) and injection header (`x-goog-api-key`) already. The keychain account name must be `"gemini"` — that's the built-in route's default `credential_key`.
 
-One gotcha: the built-in route sets the environment variable `GEMINI` (not `GEMINI_API_KEY`), so the bot needs to check for both.
+One gotcha: the built-in route sets the environment variable `GEMINI` (not `GEMINI_API_KEY`), so the bot checks for both.
 
-### Running with phantom tokens
+### What the bot code needs to know
+
+The bot's HTTP clients must send requests to the proxy base URLs rather than directly to the upstream APIs. For GitHub, this means using `GITHUB_BASE_URL` (e.g. `http://127.0.0.1:PORT/github`) with a `Bearer` auth header containing the phantom token. For Gemini, it means calling the proxy URL with the phantom token in `x-goog-api-key`.
+
+The bot handles both modes transparently — the same code works with or without nono. When the `*_BASE_URL` env vars are set, requests go through the proxy; when they're not, they go directly to the upstream APIs.
+
+---
+
+## Running It All Together
+
+With all three features configured — sandbox profile, trust verification, and phantom tokens — the full `nono run` command is:
 
 ```bash
 nono run --profile gitbot-profile.json --allow-cwd --listen-port 5001 \
@@ -340,34 +301,37 @@ nono run --profile gitbot-profile.json --allow-cwd --listen-port 5001 \
   -- .venv/bin/python3 bot.py
 ```
 
-No real tokens in shell history. No real tokens in `ps aux`. No real tokens in the process environment. The bot's `/debug/show-token` endpoint returns the phantom token — a 64-character hex string that means nothing outside this session.
+`WEBHOOK_SECRET`, `GITHUB_REPO`, and `DOCS_URL` live in a `.env` file — the webhook secret must be available to the process directly because it's used for inbound HMAC validation, not outbound API calls. API credentials (`GITHUB_TOKEN`, `GEMINI_API_KEY`) must *not* be in `.env` — nono injects phantom tokens for these, and real values would shadow them. If you followed the quick start earlier and exported real credentials in your shell, unset them first:
 
-### What the bot code needs to know
-
-The bot's HTTP clients must send requests to the proxy base URLs rather than directly to the upstream APIs. For GitHub, this means using `GITHUB_BASE_URL` (e.g. `http://127.0.0.1:PORT/github`) with a `Bearer` auth header containing the phantom token. For Gemini, it means calling the proxy URL with the phantom token in `x-goog-api-key`.
-
-PyGithub can't be used in proxy mode — its domain assertion rejects localhost URLs when following paginated links. The bot uses `requests` directly instead. Similarly, the Google genai SDK ignores custom base URLs when an API key is provided, so the Gemini call uses the REST API directly via `requests`.
-
----
-
-## Putting It Together
-
+```bash
+unset GITHUB_TOKEN GEMINI_API_KEY
 ```
-                    ┌─────────────────────────────────────────┐
-                    │  nono sandbox (kernel-enforced)          │
-                    │                                          │
-  GitHub webhook ──►│  bot.py                                  │
-                    │    │                                     │
-                    │    ▼                                     │    ~/.ssh:    EPERM
-                    │  context.py                              │    ~/.aws:    EPERM
-                    │    └── GEMINI.md  ◄── trust-verified     │    ~/.gnupg:  EPERM
-                    │                                          │
-                    │  triage.py  ──► localhost proxy ──► Gemini
-                    │  github_api ──► localhost proxy ──► GitHub
-                    │                                          │
-                    │  Credentials: phantom tokens only        │
-                    │  Real keys held by proxy, outside sandbox│
-                    └─────────────────────────────────────────┘
+
+No real tokens in shell history. No real tokens in `ps aux`. No real tokens in the process environment. You can verify this with the bot's debug endpoint:
+
+```bash
+curl http://localhost:5001/debug/show-token
+# {"token_seen_by_process": "f3ad...2a83"}
+```
+
+The truncated hex string is the phantom token — it means nothing outside this nono session. The real `ghp_` token never entered the sandbox.
+
+```text
++----- nono sandbox (kernel-enforced) ---+    +--- nono supervisor -----+
+|                                        |    |                         |
+|  bot.py  <-- GitHub webhook            |    |  credential proxy       |
+|    |                                   |    |    |                    |
+|    v                                   |    |    +-- keychain lookup  |
+|  context.py                            |    |    +-- token swap       |
+|    +-- GEMINI.md <-- trust-verified    |    |    +-- TLS upstream     |
+|                                        |    |                         |
+|  triage.py  --> localhost:PORT/gemini -+---->    --> Gemini API       |
+|  github_api --> localhost:PORT/github -+---->    --> GitHub API       |
+|                                        |    |                         |
+|  ~/.ssh:   EPERM                       |    |  Real keys live here    |
+|  ~/.aws:   EPERM                       |    |  Phantom tokens only    |
+|  ~/.gnupg: EPERM                       |    |  cross the boundary     |
++----------------------------------------+    +-------------------------+
 ```
 
 | Attack | Mitigation |
@@ -382,7 +346,7 @@ PyGithub can't be used in proxy mode — its domain assertion rejects localhost 
 
 ## Conclusion
 
-nono required minimal changes to the bot. The main code change was switching from PyGithub and the Google genai SDK to direct `requests` calls — necessary because the SDKs don't play well with nono's localhost proxy (PyGithub rejects localhost URLs; the genai SDK ignores custom base URLs when an API key is set). The rest is configuration: a profile that declares what the process is allowed to do, credential routes that keep real API keys outside the sandbox, and a trust policy that prevents instruction file tampering.
+The sandbox profile and trust verification required no code changes to the bot to use nono — they're purely configuration and CLI. The only code change was for phantom token support: making the API base URLs configurable so the bot can talk to nono's localhost proxy or directly to the upstream APIs with the same code paths.
 
 The result is a bot where real credentials never enter the process, network access is kernel-enforced to a specific allow-list, and the LLM's instruction file is cryptographically signed.
 
