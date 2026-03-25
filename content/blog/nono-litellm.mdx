@@ -1,10 +1,12 @@
 ---
 title: "How nono Prevents Supply Chain Attacks: A Case Study of the LiteLLM PyPI Compromise"
+seoTitle: "How nono Prevents Supply Chain Attacks: LiteLLM PyPI Case Study"
 date: "2026-03-25"
-description: "Learn how nono's kernel-level sandboxing can prevent supply chain attacks like the recent LiteLLM PyPI compromise. Enforce strict filesystem and network restrictions to stop credential theft and data exfiltration, even if a dependency is malicious."
+description: "How nono's kernel-level sandbox stops supply chain attacks like the LiteLLM PyPI compromise — blocking credential theft and exfiltration at the OS level."
+excerpt: "The tampered LiteLLM package stole API keys, SSH keys, and cloud tokens. nono's kernel-enforced sandbox makes that structurally impossible — even if the malicious code runs."
 author: "Luke Hinds"
 authorRole: "Maintainer"
-tags: ["Security", "Supply Chain Attacks", "Pypi", "LiteLLM", "nono"]
+tags: ["Security", "Supply Chain Attacks", "PyPI", "LiteLLM", "nono"]
 ---
 
 On March 24, 2026, Sonatype researcher Callum McMahon discovered that LiteLLM versions 1.82.7 and 1.82.8 on PyPI had been compromised. The tampered packages contained a credential stealer and malware dropper designed to exfiltrate API keys, SSH keys, cloud tokens, and CI/CD secrets to attacker-controlled infrastructure.
@@ -15,7 +17,7 @@ This is the kind of attack nono was built to prevent.
 
 ## The Attack Surface
 
-The compromised package exploited two capabilities that most applications have by default:
+The trojanised package exploited two capabilities that most applications have by default:
 
 1. **Unrestricted filesystem access** — read SSH keys from `~/.ssh`, cloud credentials from `~/.aws` and `~/.config/gcloud`, environment variables containing API tokens
 2. **Unrestricted network access** — exfiltrate stolen data to attacker-controlled servers, download second-stage payloads
@@ -24,14 +26,14 @@ A Python application using litellm legitimately needs to reach LLM API endpoints
 
 ## Sandboxing with nono
 
-nono applies OS-enforced isolation using Landlock (Linux) and Seatbelt (macOS). Once the sandbox is applied, unauthorized operations are structurally impossible — no amount of malicious code inside the process can bypass kernel-level restrictions.
+nono applies [OS-enforced isolation](/os-sandbox) using Landlock (Linux) and Seatbelt (macOS). Once the sandbox is applied, unauthorised operations are structurally impossible — no amount of malicious code inside the process can bypass kernel-level restrictions.
 
 ### Network Allowlisting
 
 nono's network proxy acts as a gateway between the sandboxed process and the outside world. The `minimal` network profile restricts outbound connections to LLM API endpoints only:
 
 ```bash
-nono --network-profile minimal -- python my_app.py
+nono run --network-profile minimal -- python my_app.py
 ```
 
 The sandboxed process can reach `api.openai.com`, `api.anthropic.com`, `api.mistral.ai`, and other legitimate LLM providers. Connections to anything else — including attacker C2 infrastructure — are blocked. The malware's exfiltration channel is gone.
@@ -39,7 +41,7 @@ The sandboxed process can reach `api.openai.com`, `api.anthropic.com`, `api.mist
 If your application needs additional hosts, add them explicitly:
 
 ```bash
-nono --network-profile minimal \
+nono run --network-profile minimal \
      --allow-domain huggingface.co \
      -- python my_app.py
 ```
@@ -55,21 +57,34 @@ nono's filesystem policy blocks access to sensitive directories by default:
 
 The credential stealer finds nothing to steal.
 
+The write side is equally restricted. nono confines writes to the working directory and `/tmp` — a malware dropper attempting to install a persistent payload in `~/.local/bin` or `/usr/local/bin` gets `EPERM`.
+
 ### Credential Isolation
 
-nono's proxy supports a phantom token pattern: real API keys are loaded from the system keystore into the proxy process (which runs outside the sandbox). The sandboxed application connects through localhost and never sees the actual credentials.
+nono supports a [phantom token pattern](/blog/blog-credential-injection): real API keys are loaded from the system keystore into the proxy process (which runs outside the sandbox). The sandboxed application connects through localhost and never sees the actual credentials.
 
 First, store your API keys in the system keystore:
+
+**macOS:**
 
 ```bash
 security add-generic-password -s "nono" -a "openai_api_key" -w "sk-xxx"
 security add-generic-password -s "nono" -a "anthropic_api_key" -w "sk-xxx"
 ```
 
+**Linux:**
+
+```bash
+echo -n "sk-xxx" | secret-tool store --label="nono: openai_api_key" \
+    service nono username openai_api_key target default
+echo -n "sk-xxx" | secret-tool store --label="nono: anthropic_api_key" \
+    service nono username anthropic_api_key target default
+```
+
 Then reference them via `--proxy-credential`:
 
 ```bash
-nono --network-profile minimal \
+nono run --network-profile minimal \
      --proxy-credential openai \
      --proxy-credential anthropic \
      -- python my_app.py
@@ -82,7 +97,7 @@ Even if malicious code inspects every environment variable and config file insid
 A single command combines all three layers:
 
 ```bash
-nono --profile developer \
+nono run --profile developer \
      --network-profile minimal \
      --proxy-credential openai \
      --proxy-credential anthropic \
@@ -99,10 +114,18 @@ This gives you:
 
 ## Defense in Depth, Not Detection
 
-Traditional supply chain defenses focus on detecting compromised packages — scanning for known malware signatures, monitoring package registry activity, pinning dependency versions. These are valuable but reactive. They fail against zero-day compromises like this one, where the malicious versions were live on PyPI before anyone knew.
+Traditional supply chain defenses focus on detecting tampered packages — scanning for known malware signatures, monitoring package registry activity, pinning dependency versions. These are valuable but reactive. They fail against zero-day incidents like this one, where the malicious versions were live on PyPI before anyone knew.
 
-nono takes a different approach: assume the code inside the sandbox might be hostile, and enforce that it can only do what it legitimately needs to do. A litellm-based application needs to call LLM APIs. It does not need to read `~/.ssh/id_rsa` or connect to an unknown server in Eastern Europe. nono makes that distinction enforceable at the kernel level.
+nono takes a different approach: assume the code inside the sandbox might be hostile, and enforce that it can only do what it legitimately needs to do. A litellm-based application needs to call LLM APIs. It does not need to read `~/.ssh/id_rsa` or connect to attacker-controlled infrastructure. nono makes that distinction enforceable at the kernel level.
 
-The compromised litellm package runs. Its credential stealer finds no credentials. Its exfiltration attempt hits a wall. Its malware dropper can't write outside the project directory. The application continues to work normally, calling the LLM APIs it was designed to use.
+The malicious litellm code runs. Its credential stealer finds no credentials. Its exfiltration attempt hits a wall. Its malware dropper can't write outside the project directory. The application continues to work normally, calling the LLM APIs it was designed to use.
 
-Supply chain attacks succeed because we give every dependency the same privileges as our own code. nono changes that equation.
+Supply chain attacks succeed because we give every dependency the same privileges as our own code. nono changes that equation. For a hands-on walkthrough, see [how we sandboxed a GitHub bot](/blog/wrapping-github-bot-with-nono) with all three layers. The project is on [GitHub](https://github.com/always-further/nono) — star it if you want to follow development.
+
+## Next steps
+
+- **[OS Sandbox](/os-sandbox)** — How Landlock and Seatbelt enforcement works under the hood
+- **[Credential Injection](/blog/blog-credential-injection)** — The phantom token pattern in detail
+- **[Wrapping a GitHub Bot](/blog/wrapping-github-bot-with-nono)** — End-to-end walkthrough of sandboxing an LLM agent
+- **[Docs](https://nono.sh/docs)** — Full CLI reference
+- **[GitHub](https://github.com/always-further/nono)** — Source code

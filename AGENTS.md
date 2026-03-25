@@ -10,7 +10,7 @@ Each page owns a keyword cluster. Never create content that competes with anothe
 |---|---|---|
 | `/python-sandbox` | python sandbox, python sandbox untrusted code | run untrusted python, secure python execution |
 | `/node-sandbox` | node sandbox, node sandbox linux | secure node execution, run untrusted javascript |
-| `/linux-sandbox` | linux sandbox, isolate process linux | run untrusted code linux, kernel sandbox linux |
+| `/os-sandbox` | linux sandbox, isolate process linux | run untrusted code linux, kernel sandbox linux |
 | `/python-sdk` | nono python sdk, nono-py | (product term, not SEO target) |
 | `/typescript-sdk` | nono typescript sdk, nono-ts | (product term, not SEO target) |
 | `/undo` | undo agent changes, rollback filesystem | atomic rollback, reversible execution |
@@ -22,7 +22,7 @@ SDK pages are product pages. Sandbox pages are SEO landing pages. They serve dif
 
 ## Core Page Content Structure
 
-Every core SEO page (`/python-sandbox`, `/node-sandbox`, `/linux-sandbox`) must include these sections in order:
+Every core SEO page (`/python-sandbox`, `/node-sandbox`, `/os-sandbox`) must include these sections in order:
 
 1. **Problem framing** — Why running untrusted code is dangerous. Speak to the developer's pain.
 2. **Code example** — Show nono solving the problem in <10 lines. This appears above the fold.
@@ -78,7 +78,7 @@ The pattern page explains the execution model abstractly. Core pages and guides 
 
 ### Required links
 
-- Core pages (`/python-sandbox`, `/node-sandbox`, `/linux-sandbox`) link to each other
+- Core pages (`/python-sandbox`, `/node-sandbox`, `/os-sandbox`) link to each other
 - Guides link to the relevant core page
 - All major pages link to `/patterns/reversible-agent-execution`
 - Pattern page links back to all core pages
