@@ -104,7 +104,7 @@ pub fn apply_sandbox(caps: &CapabilitySet) -> Result<()> {
     Ok(())
 }`;
 
-export default function LinuxSandboxPage() {
+export default function OsSandboxPage() {
   return (
     <InfraPageLayout
       title="Kernel-Level Isolation for AI Agents"

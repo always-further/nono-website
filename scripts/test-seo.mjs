@@ -26,7 +26,7 @@ function assert(condition, message) {
   }
 }
 
-function readPage(pagePath) {
+function readPage(pagePath, { required = false } = {}) {
   const filePath = join(BUILD_DIR, pagePath);
   if (existsSync(filePath)) {
     return readFileSync(filePath, 'utf-8');
@@ -36,13 +36,17 @@ function readPage(pagePath) {
   if (alt !== filePath && existsSync(alt)) {
     return readFileSync(alt, 'utf-8');
   }
-  console.error(`  SKIP: ${filePath} not found (run 'npm run build' first)`);
+  if (required) {
+    assert(false, `${pagePath}: build output not found`);
+  } else {
+    console.error(`  SKIP: ${filePath} not found (run 'npm run build' first)`);
+  }
   return null;
 }
 
-function testPage(name, pagePath, checks) {
+function testPage(name, pagePath, checks, options) {
   console.log(`\n${name} (${pagePath})`);
-  const html = readPage(pagePath);
+  const html = readPage(pagePath, options);
   if (!html) return;
   checks(html);
 }
@@ -87,7 +91,7 @@ testPage('Homepage', 'index.html', (html) => {
   assert(html.includes('name="keywords"'), 'Homepage: missing keywords meta');
   assertOG(html, 'Homepage');
   assert(html.includes('twitter:card'), 'Homepage: missing Twitter card');
-});
+}, { required: true });
 
 // ── Infrastructure pages ──
 
@@ -103,7 +107,7 @@ for (const page of infraPages) {
   testPage(page.name, page.path, (html) => {
     assertBaseSEO(html, page.name);
     assertOG(html, page.name);
-  });
+  }, { required: true });
 }
 
 // ── SDK pages ──
@@ -117,7 +121,7 @@ for (const page of sdkPages) {
   testPage(page.name, page.path, (html) => {
     assertBaseSEO(html, page.name);
     assertOG(html, page.name);
-  });
+  }, { required: true });
 }
 
 // ── Blog index ──
@@ -125,7 +129,7 @@ for (const page of sdkPages) {
 testPage('Blog Index', 'blog/index.html', (html) => {
   assertBaseSEO(html, 'Blog Index');
   assertOG(html, 'Blog Index');
-});
+}, { required: true });
 
 // ── Blog posts (dynamic) ──
 
@@ -154,7 +158,7 @@ if (existsSync(blogBuildDir)) {
 testPage('Guides Index', 'guides/index.html', (html) => {
   assertBaseSEO(html, 'Guides Index');
   assertOG(html, 'Guides Index');
-});
+}, { required: true });
 
 // ── Guide pages (dynamic) ──
 
@@ -182,7 +186,7 @@ if (existsSync(guidesBuildDir)) {
 testPage('Academy Index', 'academy/index.html', (html) => {
   assertBaseSEO(html, 'Academy Index');
   assertOG(html, 'Academy Index');
-});
+}, { required: true });
 
 // ── Academy lessons (dynamic) ──
 

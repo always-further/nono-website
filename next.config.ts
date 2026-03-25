@@ -145,6 +145,11 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        source: "/linux-sandbox",
+        destination: "/os-sandbox",
+        permanent: true,
+      },
+      {
         source:
           "/:path((?!docs(?:/|$)|blog(?:/|$)|os-sandbox(?:/|$)|undo(?:/|$)|audit-trail(?:/|$)|provenance(?:/|$)|runtime-supervisor(?:/|$)|python-sdk(?:/|$)|typescript-sdk(?:/|$)|guides(?:/|$)|academy(?:/|$)|mintlify-assets(?:/|$)|_next(?:/|$)|api(?:/|$)|opengraph-image$|favicon\\.ico$|robots\\.txt$|sitemap\\.xml$|.*\\.[^/]+$).+)",
         destination: "/docs/:path",

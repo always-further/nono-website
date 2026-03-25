@@ -1,0 +1,108 @@
+---
+title: "How nono Prevents Supply Chain Attacks: A Case Study of the LiteLLM PyPI Compromise"
+date: "2026-03-20"
+description: "Learn how nono's kernel-level sandboxing can prevent supply chain attacks like the recent LiteLLM PyPI compromise. Enforce strict filesystem and network restrictions to stop credential theft and data exfiltration, even if a dependency is malicious."
+author: "Luke Hinds"
+authorRole: "Maintainer"
+tags: ["Security", "Supply Chain Attacks", "Pypi", "LiteLLM", "nono"]
+---
+
+On March 24, 2026, Sonatype researcher Callum McMahon discovered that LiteLLM versions 1.82.7 and 1.82.8 on PyPI had been compromised. The tampered packages contained a credential stealer and malware dropper designed to exfiltrate API keys, SSH keys, cloud tokens, and CI/CD secrets to attacker-controlled infrastructure.
+
+LiteLLM is a unified interface for switching between LLM providers — OpenAI, Anthropic, Google, and others. Its position in the AI stack makes it a high-value target: it sits directly between your application and every API key you've configured.
+
+This is the kind of attack nono was built to prevent.
+
+## The Attack Surface
+
+The compromised package exploited two capabilities that most applications have by default:
+
+1. **Unrestricted filesystem access** — read SSH keys from `~/.ssh`, cloud credentials from `~/.aws` and `~/.config/gcloud`, environment variables containing API tokens
+2. **Unrestricted network access** — exfiltrate stolen data to attacker-controlled servers, download second-stage payloads
+
+A Python application using litellm legitimately needs to reach LLM API endpoints. It does not need to read your SSH keys or connect to arbitrary domains. But without a sandbox, nothing enforces that distinction.
+
+## Sandboxing with nono
+
+nono applies OS-enforced isolation using Landlock (Linux) and Seatbelt (macOS). Once the sandbox is applied, unauthorized operations are structurally impossible — no amount of malicious code inside the process can bypass kernel-level restrictions.
+
+### Network Allowlisting
+
+nono's network proxy acts as a gateway between the sandboxed process and the outside world. The `minimal` network profile restricts outbound connections to LLM API endpoints only:
+
+```bash
+nono --network-profile minimal -- python my_app.py
+```
+
+The sandboxed process can reach `api.openai.com`, `api.anthropic.com`, `api.mistral.ai`, and other legitimate LLM providers. Connections to anything else — including attacker C2 infrastructure — are blocked. The malware's exfiltration channel is gone.
+
+If your application needs additional hosts, add them explicitly:
+
+```bash
+nono --network-profile minimal \
+     --allow-domain huggingface.co \
+     -- python my_app.py
+```
+
+### Filesystem Deny Rules
+
+nono's filesystem policy blocks access to sensitive directories by default:
+
+- `~/.ssh` — SSH keys
+- `~/.aws`, `~/.config/gcloud` — cloud credentials
+- `~/.gnupg` — GPG keys
+- `/etc/shadow`, `/etc/passwd` — system credentials
+
+The credential stealer finds nothing to steal.
+
+### Credential Isolation
+
+nono's proxy supports a phantom token pattern: real API keys are loaded from the system keystore into the proxy process (which runs outside the sandbox). The sandboxed application connects through localhost and never sees the actual credentials.
+
+First, store your API keys in the system keystore:
+
+```bash
+security add-generic-password -s "nono" -a "openai_api_key" -w "sk-xxx"
+security add-generic-password -s "nono" -a "anthropic_api_key" -w "sk-xxx"
+```
+
+Then reference them via `--proxy-credential`:
+
+```bash
+nono --network-profile minimal \
+     --proxy-credential openai \
+     --proxy-credential anthropic \
+     -- python my_app.py
+```
+
+Even if malicious code inspects every environment variable and config file inside the sandbox, the real tokens aren't there. The proxy injects them into outbound requests on behalf of the application.
+
+### Putting It Together
+
+A single command combines all three layers:
+
+```bash
+nono --profile developer \
+     --network-profile minimal \
+     --proxy-credential openai \
+     --proxy-credential anthropic \
+     -- python my_app.py
+```
+
+This gives you:
+
+| Layer | What it blocks |
+|---|---|
+| Filesystem sandbox | Reading SSH keys, cloud tokens, system credentials |
+| Network allowlist | Exfiltration to attacker domains, payload downloads |
+| Credential isolation | API key theft from environment or config files |
+
+## Defense in Depth, Not Detection
+
+Traditional supply chain defenses focus on detecting compromised packages — scanning for known malware signatures, monitoring package registry activity, pinning dependency versions. These are valuable but reactive. They fail against zero-day compromises like this one, where the malicious versions were live on PyPI before anyone knew.
+
+nono takes a different approach: assume the code inside the sandbox might be hostile, and enforce that it can only do what it legitimately needs to do. A litellm-based application needs to call LLM APIs. It does not need to read `~/.ssh/id_rsa` or connect to an unknown server in Eastern Europe. nono makes that distinction enforceable at the kernel level.
+
+The compromised litellm package runs. Its credential stealer finds no credentials. Its exfiltration attempt hits a wall. Its malware dropper can't write outside the project directory. The application continues to work normally, calling the LLM APIs it was designed to use.
+
+Supply chain attacks succeed because we give every dependency the same privileges as our own code. nono changes that equation.
