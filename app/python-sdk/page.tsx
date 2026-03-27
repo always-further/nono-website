@@ -1,51 +1,117 @@
 import { SdkPageLayout } from "@/components/sdk/SdkPageLayout";
 import { InfraCodeBlock } from "@/components/infrastructure/InfraCodeBlock";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { Lock, Shield, Search } from "lucide-react";
+import { Lock, Shield, Search, Undo2, Network, FileCode } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Python SDK - Runtime Safety for Python AI Agents",
   description:
-    "Enforce kernel-level filesystem isolation from Python with nono-py. Landlock on Linux, Seatbelt on macOS.",
+    "Kernel-level sandboxing, network filtering, credential injection, and filesystem snapshots for Python AI agents with nono-py.",
   alternates: { canonical: "/python-sdk" },
   openGraph: {
     title: "Python SDK - Runtime Safety for Python AI Agents",
     description:
-      "Enforce kernel-level filesystem isolation from Python with nono-py. Landlock on Linux, Seatbelt on macOS.",
+      "Kernel-level sandboxing, network filtering, credential injection, and filesystem snapshots for Python AI agents with nono-py.",
     type: "website",
     images: [{ url: "/logo.png", width: 1200, height: 630, alt: "nono" }],
   },
 };
 
-const quickStart = `import nono_py as nono
+const sandboxCode = `import nono_py as nono
 
-# Define capabilities
+# Define capabilities — deny by default
 caps = nono.CapabilitySet()
 caps.allow_path("/project", nono.AccessMode.READ_WRITE)
 caps.allow_file("/home/user/.gitconfig", nono.AccessMode.READ)
-caps.block_network()  # deny all outbound connections
+caps.block_network()
 
-# Apply sandbox (irrevocable)
+# Apply sandbox (irrevocable — kernel-enforced)
 nono.apply(caps)
 
-# Your agent code runs here, fully sandboxed
+# Your agent runs sandboxed from here
 agent.run()`;
+
+const execCode = `import nono_py as nono
+
+# Run a command in a sandboxed child process
+# Parent stays unsandboxed
+caps = nono.CapabilitySet()
+caps.allow_path("/project", nono.AccessMode.READ_WRITE)
+
+result = nono.sandboxed_exec(
+    caps,
+    ["python", "untrusted_script.py"],
+    cwd="/project",
+    timeout_secs=30,
+    env=[("API_KEY", "phantom-token-here")]
+)
+
+print(result.exit_code)
+print(result.stdout.decode())`;
+
+const proxyCode = `import nono_py as nono
+
+# Network proxy with credential injection
+route = nono.RouteConfig(
+    prefix="/v1",
+    upstream="https://api.openai.com",
+    credential_key="openai_api_key",
+    inject_mode=nono.InjectMode.HEADER,
+    inject_header="Authorization",
+    credential_format="Bearer {credential}"
+)
+
+proxy = nono.ProxyConfig(
+    allowed_hosts=["api.openai.com"],
+    routes=[route]
+)
+
+handle = nono.start_proxy(proxy)
+print(f"Proxy on port {handle.port}")
+print(handle.env_vars())       # {"HTTP_PROXY": "..."}
+print(handle.credential_env_vars())  # phantom tokens
+
+# Drain audit events after the session
+events = handle.drain_audit_events()
+handle.shutdown()`;
+
+const snapshotCode = `import nono_py as nono
+
+# Snapshot the working directory before agent execution
+exclusions = nono.ExclusionConfig(
+    use_gitignore=True,
+    exclude_patterns=["node_modules", ".next", "__pycache__"]
+)
+
+mgr = nono.SnapshotManager("/project", exclusions)
+mgr.create_baseline()
+
+# ... agent runs and modifies files ...
+
+mgr.create_incremental()
+diff = mgr.compute_restore_diff()
+
+for change in diff:
+    print(f"{change.change_type}: {change.path}")
+
+# Roll back everything the agent changed
+mgr.restore_to(snapshot_number=0)`;
 
 const queryCode = `import nono_py as nono
 
-# Check platform support
-info = nono.support_info()
-print(info.platform, info.details)
-
-# Build capabilities and dry-run check
+# Dry-run permission checks before applying
 caps = nono.CapabilitySet()
 caps.allow_path("/project", nono.AccessMode.READ_WRITE)
 
 ctx = nono.QueryContext(caps)
+
 result = ctx.query_path("/etc/passwd", nono.AccessMode.READ)
-print(result.status)  # "denied"
-print(result.reason)  # explains why`;
+print(result["status"])  # "denied"
+print(result["reason"])  # explains why
+
+net = ctx.query_network("api.openai.com", 443)
+print(net["status"])  # "denied" (block_network not set, default)`;
 
 export default function PythonSdkPage() {
   return (
@@ -63,28 +129,33 @@ export default function PythonSdkPage() {
           </h2>
           <div className="text-muted leading-relaxed space-y-4">
             <p>
-              The Python SDK provides a thin wrapper around nono&apos;s core Rust
-              library via PyO3 bindings. When you call{" "}
-              <code className="px-1.5 py-0.5 rounded bg-code-bg border border-border font-mono text-xs">
-                nono.apply(caps)
-              </code>
-              , the SDK applies kernel-level Landlock rules (Linux) or Seatbelt
-              profiles (macOS) to the current process. The sandbox is irrevocable
-              &mdash; it cannot be loosened after application.
+              nono-py provides Python bindings to nono&apos;s core Rust library
+              via PyO3. The SDK exposes four key systems: kernel-level process
+              sandboxing, a network proxy with credential injection, filesystem
+              snapshots with rollback, and a policy engine for composable
+              security profiles.
             </p>
             <p>
-              This means your Python AI agent and every subprocess it spawns
-              operate within the defined capability set. Filesystem access is
-              constrained at the kernel level, not by application-level checks
-              that can be bypassed. Use{" "}
+              Two sandboxing modes are available.{" "}
               <code className="px-1.5 py-0.5 rounded bg-code-bg border border-border font-mono text-xs">
-                QueryContext
+                nono.apply(caps)
               </code>{" "}
-              to dry-run permission checks and{" "}
+              applies kernel-level restrictions to the current process &mdash;
+              irrevocable, inherited by all child processes.{" "}
               <code className="px-1.5 py-0.5 rounded bg-code-bg border border-border font-mono text-xs">
-                SandboxState
+                nono.sandboxed_exec()
               </code>{" "}
-              to serialize capability sets.
+              runs a command in a sandboxed child process, leaving the parent
+              unsandboxed. Use the first for self-sandboxing agents; use the
+              second for orchestrators that need to spawn isolated workloads.
+            </p>
+            <p>
+              Full type stubs are included ({" "}
+              <code className="px-1.5 py-0.5 rounded bg-code-bg border border-border font-mono text-xs">
+                py.typed
+              </code>
+              ) &mdash; mypy, pyright, and IDE autocompletion work out of the
+              box.
             </p>
           </div>
         </GlassCard>
@@ -92,65 +163,124 @@ export default function PythonSdkPage() {
         <GlassCard className="p-6" glowColor="purple" hoverable>
           <Lock size={20} className="text-accent mb-4" strokeWidth={1.5} />
           <h3 className="text-lg font-semibold mb-2 tracking-tight">
-            Filesystem Isolation
+            Kernel-Level Sandbox
           </h3>
           <p className="text-sm text-muted leading-relaxed">
-            Define per-path access modes (read, write, read-write) with
-            fine-grained control. Only explicitly allowed paths are accessible
-            &mdash; everything else is denied by default at the kernel level.
+            Apply irrevocable filesystem restrictions via Landlock (Linux) or
+            Seatbelt (macOS). Define per-path access modes &mdash; read, write,
+            read-write. Everything not explicitly allowed is denied at the
+            kernel level.
           </p>
         </GlassCard>
 
         <GlassCard className="p-6" glowColor="blue" hoverable>
-          <Shield
+          <Network
             size={20}
             className="text-accent-blue mb-4"
             strokeWidth={1.5}
           />
           <h3 className="text-lg font-semibold mb-2 tracking-tight">
-            Network Blocking
+            Network Proxy &amp; Credential Injection
           </h3>
           <p className="text-sm text-muted leading-relaxed">
-            Block all outbound network connections at the kernel level with{" "}
+            Domain-filtered outbound access with per-route credential injection.
+            Supports header, URL path, query parameter, and basic auth injection
+            modes. Real API keys stay outside the sandbox &mdash; only phantom
+            tokens enter the process.
+          </p>
+        </GlassCard>
+
+        <GlassCard className="p-6" glowColor="purple" hoverable>
+          <Undo2 size={20} className="text-accent mb-4" strokeWidth={1.5} />
+          <h3 className="text-lg font-semibold mb-2 tracking-tight">
+            Filesystem Snapshots
+          </h3>
+          <p className="text-sm text-muted leading-relaxed">
+            Content-addressable snapshots with Merkle roots. Create baselines
+            before agent execution, compute diffs after, and roll back to any
+            previous state. Respects{" "}
             <code className="px-1 py-0.5 rounded bg-code-bg border border-border font-mono text-xs">
-              block_network()
+              .gitignore
+            </code>{" "}
+            patterns and custom exclusions.
+          </p>
+        </GlassCard>
+
+        <GlassCard className="p-6" glowColor="blue" hoverable>
+          <FileCode
+            size={20}
+            className="text-accent-blue mb-4"
+            strokeWidth={1.5}
+          />
+          <h3 className="text-lg font-semibold mb-2 tracking-tight">
+            Sandboxed Child Processes
+          </h3>
+          <p className="text-sm text-muted leading-relaxed">
+            Run untrusted code in a sandboxed child process via{" "}
+            <code className="px-1 py-0.5 rounded bg-code-bg border border-border font-mono text-xs">
+              sandboxed_exec()
             </code>
-            . The block is enforced by Landlock (Linux) or Seatbelt (macOS) and
-            applies to all child processes.
+            . The parent stays unsandboxed. Set working directory, timeout,
+            and environment variables. Captures stdout and stderr as bytes.
           </p>
         </GlassCard>
 
         <InfraCodeBlock
-          code={quickStart}
+          code={sandboxCode}
           language="python"
           filename="sandbox.py"
         />
         <InfraCodeBlock
-          code={queryCode}
+          code={execCode}
           language="python"
-          filename="query.py"
+          filename="sandboxed_exec.py"
+        />
+        <InfraCodeBlock
+          code={proxyCode}
+          language="python"
+          filename="proxy.py"
+        />
+        <InfraCodeBlock
+          code={snapshotCode}
+          language="python"
+          filename="snapshots.py"
         />
 
         <GlassCard className="md:col-span-2 p-8">
           <h2 className="text-xl font-bold tracking-tight mb-6">
-            SDK Capabilities
+            Core API
           </h2>
           <div className="grid sm:grid-cols-3 gap-6">
             {[
               {
                 icon: Lock,
                 title: "CapabilitySet",
-                desc: "Builder pattern for defining filesystem access, network blocking, and command rules. Irrevocable after apply().",
+                desc: "Builder for filesystem and network rules. allow_path(), allow_file(), block_network(), platform_rule(). Irrevocable after apply().",
               },
               {
                 icon: Search,
                 title: "QueryContext",
-                desc: "Dry-run permission checks against a capability set. Test whether a path or network access would be allowed before applying.",
+                desc: "Dry-run permission checks. query_path() and query_network() test whether access would be allowed before applying the sandbox.",
               },
               {
                 icon: Shield,
-                title: "SandboxState",
-                desc: "Serialize and deserialize capability sets to JSON. Persist sandbox configurations or transfer them between processes.",
+                title: "Policy",
+                desc: "Load and resolve JSON security profiles. Built-in groups (python_runtime, node_runtime) expand to platform-specific paths. Composable and version-controlled.",
+              },
+              {
+                icon: Network,
+                title: "ProxyConfig",
+                desc: "Network proxy with domain allowlists, per-route credential injection (header, URL, query param, basic auth), and audit event streaming.",
+              },
+              {
+                icon: Undo2,
+                title: "SnapshotManager",
+                desc: "Content-addressable filesystem snapshots. Baseline, incremental, compute diffs, restore to any point. Merkle root verification.",
+              },
+              {
+                icon: FileCode,
+                title: "sandboxed_exec()",
+                desc: "Run a command in a sandboxed child process. Set cwd, timeout, env vars. Parent process remains unsandboxed for orchestration.",
               },
             ].map((item) => (
               <div key={item.title}>
@@ -167,6 +297,13 @@ export default function PythonSdkPage() {
             ))}
           </div>
         </GlassCard>
+
+        <InfraCodeBlock
+          code={queryCode}
+          language="python"
+          filename="query.py"
+          className="md:col-span-2"
+        />
       </div>
     </SdkPageLayout>
   );

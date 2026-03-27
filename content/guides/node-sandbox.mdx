@@ -1,0 +1,106 @@
+---
+title: "How to Sandbox Node.js Code with Kernel-Level Isolation"
+description: "Sandbox Node.js scripts and AI agents with kernel-enforced filesystem isolation and network filtering using nono. No containers required."
+date: "2026-03-26"
+---
+
+Node.js agents and scripts run with your full user permissions. Every npm dependency in `node_modules` has the same access you do — your SSH keys, cloud credentials, and the entire filesystem. A single compromised package in the dependency tree can read, write, or exfiltrate anything.
+
+nono enforces kernel-level restrictions on the Node.js process before it starts. The sandbox is applied by the OS kernel (Landlock on Linux, Seatbelt on macOS) and cannot be loosened from inside the process. No `vm` module tricks, no V8 isolate escapes — the kernel denies the syscall directly.
+
+## Sandbox a Node.js process
+
+Install nono:
+
+```bash
+brew install nono
+```
+
+Run any Node.js script with default-deny filesystem access:
+
+```bash
+nono run --allow-cwd -- node my_agent.js
+```
+
+The process can read and write in the current directory (including `node_modules`). Sensitive directories like `~/.ssh`, `~/.aws`, and `~/.gnupg` are blocked. This applies to every dependency loaded by the process — not just your code.
+
+## Restrict network access
+
+npm packages can make arbitrary HTTP requests. A supply chain attack or compromised dependency could exfiltrate data without touching the filesystem. Lock it down:
+
+```bash
+nono run --allow-cwd --network-profile minimal -- node my_agent.js
+```
+
+Only connections to known LLM API endpoints are allowed. Everything else is blocked. Add specific hosts as needed:
+
+```bash
+nono run --allow-cwd --network-profile minimal \
+  --allow-domain registry.npmjs.org \
+  -- node my_agent.js
+```
+
+## Protect API keys
+
+Don't pass API keys as environment variables — they're visible in `/proc/PID/environ` on Linux and readable by any same-user process. Use nono's [phantom token proxy](/blog/blog-credential-injection):
+
+```bash
+# Store keys in keychain
+security add-generic-password -s "nono" -a "openai_api_key" -w "sk-..."
+
+# Run with injection
+nono run --allow-cwd --proxy-credential openai -- node my_agent.js
+```
+
+The Node.js process receives a per-session phantom token. The real API key stays in the keychain, outside the sandbox. The proxy swaps the phantom for the real key on outbound requests.
+
+## Use a profile
+
+For repeatable isolation, define a profile:
+
+```json
+{
+  "meta": { "name": "node-agent", "version": "1.0.0" },
+  "workdir": { "access": "readwrite" },
+  "security": { "groups": ["node_runtime"] },
+  "filesystem": {
+    "read_file": ["/etc/ssl/cert.pem", "/etc/resolv.conf"],
+    "write": ["/tmp"]
+  },
+  "policy": {
+    "add_deny_access": [
+      "$HOME/.ssh", "$HOME/.aws", "$HOME/.gnupg",
+      "$HOME/.config/gcloud"
+    ]
+  },
+  "network": {
+    "allow_hosts": ["api.openai.com", "api.anthropic.com"]
+  }
+}
+```
+
+```bash
+nono run --profile node-agent.json --allow-cwd -- node my_agent.js
+```
+
+## Why not just use containers?
+
+Docker isolates at the process level but adds significant overhead: image builds, volume mounts, network configuration, and a different execution context. For a single Node.js script or AI agent, nono is lighter — one command, same filesystem context, kernel-enforced boundaries.
+
+See [Docker vs Safe Execution](/guides/docker-vs-safe-execution) for a detailed comparison.
+
+## What this protects against
+
+| Threat | Protection |
+|---|---|
+| Compromised npm package reads credentials | Filesystem deny — `EPERM` |
+| Dependency exfiltrates to unknown host | Network allowlist — connection refused |
+| Supply chain attack writes to system dirs | Write restricted to working directory |
+| API key stolen from `process.env` | Phantom tokens — real keys outside sandbox |
+
+## Next steps
+
+- **[Node.js Sandbox](/node-sandbox)** — Deep dive into Node.js-specific sandboxing
+- **[OS Sandbox](/os-sandbox)** — How Landlock and Seatbelt work under the hood
+- **[Run Untrusted Python](/guides/run-untrusted-python)** — Same approach for Python
+- **[Isolate AI Agents](/guides/isolate-ai-agents)** — Broader guide to agent isolation

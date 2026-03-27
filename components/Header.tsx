@@ -13,6 +13,8 @@ import {
   ScrollText,
   Fingerprint,
   Shield,
+  Code,
+  FileCode,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { DOCS_URL } from "@/lib/site";
@@ -44,11 +46,32 @@ interface NavItem {
   external?: boolean;
 }
 
-const infraDropdown: DropdownItem[] = [
+const sandboxDropdown: DropdownItem[] = [
   {
     href: "/os-sandbox",
-    label: "Linux/MacOS Sandbox",
-    description: "Landlock & Seatbelt kernel isolation",
+    label: "OS Sandbox",
+    description: "Kernel isolation for Linux & macOS",
+    icon: Lock,
+  },
+  {
+    href: "/python-sandbox",
+    label: "Python Sandbox",
+    description: "Isolate Python AI agents",
+    icon: Code,
+  },
+  {
+    href: "/node-sandbox",
+    label: "Node.js Sandbox",
+    description: "Isolate Node.js AI agents",
+    icon: FileCode,
+  },
+];
+
+const featuresDropdown: DropdownItem[] = [
+  {
+    href: "/os-sandbox",
+    label: "Kernel Isolation",
+    description: "Irrevocable allow-lists at the OS level",
     icon: Lock,
   },
   {
@@ -77,24 +100,9 @@ const infraDropdown: DropdownItem[] = [
   },
 ];
 
-const sdkDropdown: DropdownItem[] = [
-  {
-    href: "/python-sdk",
-    label: "Python SDK",
-    description: "nono-py on PyPI",
-    icon: Lock,
-  },
-  {
-    href: "/typescript-sdk",
-    label: "TypeScript SDK",
-    description: "nono-ts on npm",
-    icon: Lock,
-  },
-];
-
 const navItems: NavItem[] = [
-  { label: "Infrastructure", dropdown: infraDropdown },
-  { label: "SDKs", dropdown: sdkDropdown },
+  { label: "Sandboxes", dropdown: sandboxDropdown },
+  { label: "Features", dropdown: featuresDropdown },
   { label: "Blog", href: "/blog" },
   { label: "Docs", href: DOCS_URL, external: true },
 ];

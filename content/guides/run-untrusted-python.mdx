@@ -1,0 +1,113 @@
+---
+title: "How to Run Untrusted Python Code Safely"
+description: "Run untrusted Python scripts and AI agents with kernel-enforced filesystem isolation, network filtering, and credential protection using nono."
+date: "2026-03-26"
+---
+
+You need to run Python code you don't fully trust. Maybe it's a third-party script, an LLM-generated tool, or an AI agent that installs its own dependencies. The code needs to execute, but it shouldn't be able to read your SSH keys, exfiltrate data, or write outside its project directory.
+
+The standard advice — containers, virtualenvs, restricted user accounts — either adds too much overhead or doesn't actually isolate at the kernel level. nono takes a different approach: wrap the process in a kernel-enforced sandbox that restricts filesystem access, network connections, and credential visibility before the first line of Python runs.
+
+## Sandbox a Python script in 30 seconds
+
+Install nono:
+
+```bash
+brew install nono
+```
+
+Run any Python script with default-deny filesystem access:
+
+```bash
+nono run --allow-cwd -- python my_script.py
+```
+
+The script can read and write in the current directory. Everything else — `~/.ssh`, `~/.aws`, `~/.gnupg`, system configs — is blocked at the kernel level. The restriction is enforced by Landlock (Linux) or Seatbelt (macOS) and cannot be bypassed from inside the process.
+
+## Add network filtering
+
+Untrusted code shouldn't make arbitrary network connections. Restrict outbound traffic to specific hosts:
+
+```bash
+nono run --allow-cwd --network-profile minimal -- python my_script.py
+```
+
+The `minimal` profile allows connections to common LLM API endpoints (OpenAI, Anthropic, Google) and blocks everything else. If the script tries to reach an unknown server — whether through a compromised dependency or prompt injection — the connection is refused.
+
+Add specific hosts if needed:
+
+```bash
+nono run --allow-cwd --network-profile minimal \
+  --allow-domain huggingface.co \
+  -- python my_script.py
+```
+
+## Protect credentials with phantom tokens
+
+If your Python code needs API keys, don't pass them as environment variables. nono's [credential injection proxy](/blog/blog-credential-injection) keeps real keys in your system keychain and injects per-session phantom tokens that only work through a localhost proxy:
+
+```bash
+# Store the key once
+security add-generic-password -s "nono" -a "openai_api_key" -w "sk-..."
+
+# Run with phantom token injection
+nono run --allow-cwd --proxy-credential openai -- python my_agent.py
+```
+
+The Python process sees a phantom token in `OPENAI_API_KEY`. The real key never enters the sandbox. Even if the code dumps every environment variable, there's nothing to steal.
+
+## Use a profile for repeatable isolation
+
+For code you run regularly, define a [profile](/cli) instead of passing flags every time:
+
+```json
+{
+  "meta": { "name": "untrusted-python", "version": "1.0.0" },
+  "workdir": { "access": "readwrite" },
+  "security": { "groups": ["python_runtime"] },
+  "filesystem": {
+    "read_file": ["/etc/ssl/cert.pem"],
+    "write": ["/tmp"]
+  },
+  "policy": {
+    "add_deny_access": [
+      "$HOME/.ssh", "$HOME/.aws", "$HOME/.gnupg"
+    ]
+  },
+  "network": {
+    "allow_hosts": ["api.openai.com"]
+  }
+}
+```
+
+Run with the profile:
+
+```bash
+nono run --profile untrusted-python.json --allow-cwd -- python my_script.py
+```
+
+## Auto-generate a profile with nono learn
+
+If you're not sure what the script needs, let nono trace it:
+
+```bash
+nono learn --timeout 60 --json -- python my_script.py
+```
+
+Exercise the script's full code path while it runs. nono traces every filesystem access and DNS lookup, then outputs a profile you can review and tighten.
+
+## What this protects against
+
+| Threat | Protection |
+|---|---|
+| Compromised PyPI dependency reads `~/.ssh` | Filesystem deny rule — `EPERM` |
+| Script exfiltrates data to unknown server | Network allowlist — connection refused |
+| LLM-generated code writes outside project | Write restricted to working directory and `/tmp` |
+| Credential theft via `os.environ` | Phantom tokens — real keys never in sandbox |
+
+## Next steps
+
+- **[Python Sandbox](/python-sandbox)** — Deep dive into Python-specific sandboxing
+- **[OS Sandbox](/os-sandbox)** — How kernel enforcement works under the hood
+- **[Docker vs Safe Execution](/guides/docker-vs-safe-execution)** — When you need a sandbox, not a container
+- **[Isolate AI Agents](/guides/isolate-ai-agents)** — Broader guide to agent isolation

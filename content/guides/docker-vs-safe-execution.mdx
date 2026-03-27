@@ -1,0 +1,88 @@
+---
+title: "Docker vs nono: When You Need a Sandbox, Not a Container"
+description: "Compare Docker container isolation with nono's kernel-enforced sandboxing for AI agents. Understand when each approach fits and where nono is the better choice."
+date: "2026-03-26"
+---
+
+Docker and nono both restrict what a process can do. They solve different problems. Docker isolates an entire environment — filesystem, network, process tree. nono isolates a single process within your existing environment using kernel-enforced allow-lists. Understanding the difference helps you choose the right tool.
+
+## The core difference
+
+Docker creates a container: a separate filesystem root, isolated network namespace, its own process tree. The application runs in a different world from your host.
+
+nono applies kernel-level restrictions (Landlock on Linux, Seatbelt on macOS) to a process running in your normal environment. The process sees your filesystem but can only access what you explicitly allow. There's no container image, no volume mounts, no network bridge.
+
+## Side-by-side comparison
+
+| | Docker | nono |
+|---|---|---|
+| **Isolation mechanism** | Namespaces + cgroups | Landlock LSM / Seatbelt |
+| **Filesystem** | Separate root filesystem | Host filesystem with allow-lists |
+| **Network** | Virtual bridge, port mapping | Domain-level allowlist via proxy |
+| **Setup** | Dockerfile, build, run | One command: `nono run` |
+| **Credential handling** | Env vars or secrets mount | Phantom token proxy (keys never enter sandbox) |
+| **Startup overhead** | Seconds (image layer resolution) | Milliseconds (kernel policy application) |
+| **Rollback** | Discard container | Atomic filesystem snapshots |
+| **macOS support** | Docker Desktop (Linux VM) | Native Seatbelt enforcement |
+| **Audit trail** | Container logs | Cryptographic, tamper-evident log |
+
+## When Docker is the right choice
+
+Use Docker when you need:
+
+- **A reproducible build environment** — pinned OS, system libraries, language versions
+- **Process-level network isolation** — separate IP, custom DNS, network policies
+- **Multi-service orchestration** — databases, queues, and your app running together
+- **Deployment parity** — the same image runs in dev, CI, and production
+
+Docker excels at packaging and deploying applications. If your problem is "this works on my machine but not in production," Docker is the answer.
+
+## When nono is the right choice
+
+Use nono when you need:
+
+- **To sandbox an AI agent that runs on your machine** — it needs your project files, not a container
+- **Kernel-enforced credential protection** — real API keys never enter the process
+- **Instant startup** — no image to build, no layers to resolve
+- **Atomic rollback** — undo everything the agent changed with one command
+- **macOS-native isolation** — Seatbelt enforcement, not a Linux VM
+
+nono excels at runtime safety for processes that need to interact with your real filesystem under strict constraints.
+
+## The AI agent problem
+
+AI coding agents like Claude Code, Codex, or custom LLM tools need to read your source code, write files, and call APIs. Running them in Docker means mounting your project directory, forwarding API credentials, and configuring network access — at which point the container boundary is heavily perforated.
+
+nono takes the opposite approach: the agent runs in your environment but with kernel-enforced restrictions on what it can access. The restrictions are irrevocable — once applied, not even the agent can loosen them.
+
+```bash
+# Docker approach: mount project, pass credentials, expose network
+docker run -v $(pwd):/app -e OPENAI_API_KEY=$OPENAI_API_KEY my-agent
+
+# nono approach: kernel-enforced restrictions, phantom tokens
+nono run --allow-cwd --proxy-credential openai -- python my_agent.py
+```
+
+In the Docker example, the API key is in the container's environment — readable by any process. In the nono example, the API key stays in your keychain. The agent receives a [phantom token](/blog/blog-credential-injection) that only works through a localhost proxy.
+
+## Can you use both?
+
+Yes. nono composes with Docker — you can run nono inside a container for defence in depth. The container provides environment isolation; nono provides fine-grained process-level restrictions within it. A Kubernetes operator could wrap agent workloads with nono inside standard pods.
+
+## Summary
+
+| If your goal is... | Use |
+|---|---|
+| Reproducible deployment | Docker |
+| Sandboxing an AI agent on your machine | nono |
+| Credential protection with phantom tokens | nono |
+| Multi-service orchestration | Docker |
+| Atomic rollback of agent changes | nono |
+| Defence in depth | Both |
+
+## Next steps
+
+- **[OS Sandbox](/os-sandbox)** — How Landlock and Seatbelt enforcement works
+- **[Run Untrusted Python](/guides/run-untrusted-python)** — Sandbox Python scripts with nono
+- **[Node.js Sandbox](/guides/node-sandbox)** — Sandbox Node.js agents with nono
+- **[Isolate AI Agents](/guides/isolate-ai-agents)** — End-to-end agent isolation guide

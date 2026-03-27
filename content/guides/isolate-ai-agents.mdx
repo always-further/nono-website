@@ -1,0 +1,156 @@
+---
+title: "How to Isolate AI Agents with Kernel-Level Security"
+description: "Isolate LLM-powered AI agents using nono's kernel-enforced sandboxing. Restrict filesystem access, filter network traffic, protect credentials, and enable atomic rollback."
+date: "2026-03-26"
+---
+
+AI agents operate autonomously. They read files, write code, install packages, make API calls, and execute shell commands — all as your user, with your permissions. A prompt injection, compromised dependency, or hallucinated command can access anything you can.
+
+Permission prompts don't scale. After the third approval dialog, you're clicking "allow" reflexively. You need structural isolation: restrictions that the agent cannot bypass because they're enforced by the OS kernel.
+
+nono provides this. It wraps any process — Python, Node.js, Go, or a shell command — with kernel-enforced restrictions using Landlock (Linux) and Seatbelt (macOS). Once applied, the restrictions are irrevocable. There is no API to widen them from inside the sandbox.
+
+## Quick start: sandbox any agent
+
+```bash
+brew install nono
+nono run --allow-cwd -- python my_agent.py
+```
+
+The agent can read and write in the current directory. Everything else is blocked: `~/.ssh`, `~/.aws`, `~/.gnupg`, system directories. The restriction is enforced at the syscall level — no userspace bypass is possible.
+
+## Layer 1: Filesystem isolation
+
+The most common agent risk is uncontrolled filesystem access. nono defaults to deny-all and requires explicit allow-lists:
+
+```bash
+# Agent can read/write the current directory, read SSL certs
+nono run --allow-cwd \
+  --read /etc/ssl/cert.pem \
+  -- python my_agent.py
+```
+
+Sensitive directories are blocked by default. You can add explicit deny rules for defence in depth:
+
+```json
+{
+  "policy": {
+    "add_deny_access": [
+      "$HOME/.ssh", "$HOME/.aws", "$HOME/.gnupg",
+      "$HOME/.config/gcloud", "$HOME/.kube"
+    ]
+  }
+}
+```
+
+Even if the agent's code tries to read your SSH keys — whether through a prompt injection or a compromised dependency — the kernel returns `EPERM`.
+
+## Layer 2: Network filtering
+
+Agents that call LLM APIs need network access. But they shouldn't reach arbitrary hosts. nono's network proxy restricts outbound connections to an allowlist:
+
+```bash
+nono run --allow-cwd --network-profile minimal -- python my_agent.py
+```
+
+The `minimal` profile allows connections to OpenAI, Anthropic, Google, and other common LLM providers. Connections to anything else — attacker infrastructure, cloud metadata endpoints, internal services — are blocked.
+
+This stops:
+- Data exfiltration via compromised dependencies
+- SSRF attacks (e.g. `169.254.169.254` metadata service)
+- Prompt injection tricks that make the agent call external URLs
+
+## Layer 3: Credential protection
+
+Don't give the agent your real API keys. nono's [phantom token proxy](/blog/blog-credential-injection) keeps real credentials in your system keychain. The agent receives a per-session token that only works through a localhost proxy:
+
+```bash
+nono run --allow-cwd \
+  --proxy-credential openai \
+  --proxy-credential anthropic \
+  -- python my_agent.py
+```
+
+The agent's environment contains phantom tokens — 64-character hex strings that mean nothing outside this session. The proxy validates the token, swaps it for the real credential, and forwards the request upstream over TLS.
+
+Even if the agent dumps `os.environ`, posts its environment to a log, or is tricked into revealing its credentials — there's nothing useful to steal.
+
+## Layer 4: Atomic rollback
+
+Agents make mistakes. They delete files, overwrite configs, or leave half-finished changes. nono snapshots the working directory before execution:
+
+```bash
+nono run --allow-cwd --snapshot -- python my_agent.py
+```
+
+After the session, review what changed and decide whether to keep or roll back:
+
+```bash
+# See what the agent changed
+nono session diff
+
+# Roll back everything
+nono session rollback
+```
+
+This gives you an undo button for agent execution. See [Undo & Rollback](/undo) for details on the snapshot mechanics.
+
+## Layer 5: Trust verification
+
+If your agent loads an instruction file (system prompt, configuration), you need to know it hasn't been tampered with. nono's [trust verification](/provenance) uses cryptographic signing:
+
+```bash
+# Sign the instruction file
+nono trust sign --key default GEMINI.md
+
+# Run — nono verifies before the agent starts
+nono run --allow-cwd -- python my_agent.py
+```
+
+If the file has been modified since signing, the process doesn't start. No tampered instructions reach the LLM.
+
+## Putting it all together
+
+A single command combines all layers:
+
+```bash
+nono run --profile my-agent.json --allow-cwd \
+  --proxy-credential openai \
+  --proxy-credential anthropic \
+  --snapshot \
+  -- python my_agent.py
+```
+
+| Layer | What it enforces |
+|---|---|
+| Filesystem isolation | Only allowed paths are accessible |
+| Network filtering | Only allowed hosts are reachable |
+| Credential protection | Real keys never enter the sandbox |
+| Atomic rollback | Undo any changes the agent made |
+| Trust verification | Instruction files are cryptographically signed |
+
+## Built-in profiles for common agents
+
+nono ships with profiles for popular AI coding tools:
+
+```bash
+# Claude Code
+nono run --profile claude-code --allow-cwd -- claude
+
+# OpenAI Codex
+nono run --profile codex --allow-cwd -- codex
+```
+
+List available profiles:
+
+```bash
+nono profiles list
+```
+
+## Next steps
+
+- **[OS Sandbox](/os-sandbox)** — How kernel enforcement works under the hood
+- **[Python Sandbox](/python-sandbox)** — Python-specific sandboxing
+- **[Node.js Sandbox](/node-sandbox)** — Node.js-specific sandboxing
+- **[Docker vs Safe Execution](/guides/docker-vs-safe-execution)** — When to use a sandbox vs a container
+- **[Safe AI Agent Execution](/guides/safe-ai-agent-execution)** — Step-by-step setup guide

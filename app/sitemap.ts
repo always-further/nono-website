@@ -20,7 +20,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const sandboxPages = ["python-sandbox", "node-sandbox"];
 
-  const sdkPages = ["python-sdk", "typescript-sdk"];
+  const sdkPages = ["python-sdk", "typescript-sdk", "go-sdk", "cli"];
 
   return [
     {
