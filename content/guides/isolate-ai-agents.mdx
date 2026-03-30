@@ -8,7 +8,7 @@ AI agents operate autonomously. They read files, write code, install packages, m
 
 Permission prompts don't scale. After the third approval dialog, you're clicking "allow" reflexively. You need structural isolation: restrictions that the agent cannot bypass because they're enforced by the OS kernel.
 
-nono provides this. It wraps any process — Python, Node.js, Go, or a shell command — with kernel-enforced restrictions using Landlock (Linux) and Seatbelt (macOS). Once applied, the restrictions are irrevocable. There is no API to widen them from inside the sandbox.
+nono provides this. It wraps any process — Python, Node.js, Go, or a shell command — with kernel-enforced restrictions using Landlock (Linux and Windows/WSL2) and Seatbelt (macOS). Once applied, the restrictions are irrevocable. There is no API to widen them from inside the sandbox.
 
 ## Quick start: sandbox any agent
 

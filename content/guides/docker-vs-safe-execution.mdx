@@ -10,7 +10,7 @@ Docker and nono both restrict what a process can do. They solve different proble
 
 Docker creates a container: a separate filesystem root, isolated network namespace, its own process tree. The application runs in a different world from your host.
 
-nono applies kernel-level restrictions (Landlock on Linux, Seatbelt on macOS) to a process running in your normal environment. The process sees your filesystem but can only access what you explicitly allow. There's no container image, no volume mounts, no network bridge.
+nono applies kernel-level restrictions (Landlock on Linux and Windows/WSL2, Seatbelt on macOS) to a process running in your normal environment. The process sees your filesystem but can only access what you explicitly allow. There's no container image, no volume mounts, no network bridge.
 
 ## Side-by-side comparison
 
@@ -24,6 +24,7 @@ nono applies kernel-level restrictions (Landlock on Linux, Seatbelt on macOS) to
 | **Startup overhead** | Seconds (image layer resolution) | Milliseconds (kernel policy application) |
 | **Rollback** | Discard container | Atomic filesystem snapshots |
 | **macOS support** | Docker Desktop (Linux VM) | Native Seatbelt enforcement |
+| **Windows support** | Docker Desktop (Linux VM) | Landlock via WSL2 |
 | **Audit trail** | Container logs | Cryptographic, tamper-evident log |
 
 ## When Docker is the right choice
@@ -45,7 +46,7 @@ Use nono when you need:
 - **Kernel-enforced credential protection** — real API keys never enter the process
 - **Instant startup** — no image to build, no layers to resolve
 - **Atomic rollback** — undo everything the agent changed with one command
-- **macOS-native isolation** — Seatbelt enforcement, not a Linux VM
+- **macOS and Windows native isolation** — Seatbelt on macOS, Landlock via WSL2 on Windows
 
 nono excels at runtime safety for processes that need to interact with your real filesystem under strict constraints.
 

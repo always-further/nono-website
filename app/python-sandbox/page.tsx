@@ -215,8 +215,8 @@ export default function PythonSandboxPage() {
             <p>
               nono operates below the Python interpreter. It uses{" "}
               <strong className="text-foreground">Landlock LSM</strong> on
-              Linux and{" "}
-              <strong className="text-foreground">Seatbelt</strong> on macOS
+              Linux and Windows (WSL2), and{" "}
+              <strong className="text-foreground">Seatbelt</strong> on macOS,
               to restrict what the entire process tree can access at the kernel
               level. By the time the Python interpreter starts, the sandbox is
               already applied. Every{" "}

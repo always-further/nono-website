@@ -65,7 +65,7 @@ export function InfraPageLayout({
               Get started with nono
             </h2>
             <p className="text-sm text-muted mb-8">
-              Runtime safety infrastructure that works on macOS, Linux, and in CI.
+              Runtime safety infrastructure that works on macOS, Linux, Windows, and in CI.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <GradientButton href={DOCS_URL} external>Read the Docs</GradientButton>

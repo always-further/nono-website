@@ -50,7 +50,7 @@ const sandboxDropdown: DropdownItem[] = [
   {
     href: "/os-sandbox",
     label: "OS Sandbox",
-    description: "Kernel isolation for Linux & macOS",
+    description: "Kernel isolation for Linux, macOS & Windows",
     icon: Lock,
   },
   {

@@ -1,0 +1,128 @@
+---
+title: "nono Now Runs on Windows: Kernel-Enforced Sandboxing via WSL2"
+seoTitle: "nono Windows Support: Kernel-Enforced AI Agent Sandboxing via WSL2"
+date: "2026-03-30"
+description: "nono v0.26.0 brings kernel-enforced sandboxing to Windows via WSL2. Landlock isolation, network filtering, credential injection, and undo — all working on Windows."
+excerpt: "Windows developers can now sandbox AI agents with the same kernel-enforced isolation available on Linux and macOS. nono v0.26.0 runs inside WSL2 and applies Landlock restrictions to the real Linux kernel that powers it."
+author: "Luke Hinds"
+authorRole: "Maintainer"
+tags: ["Security", "Windows", "WSL2", "AI Agents", "Sandboxing", "nono"]
+---
+
+The most common request we've had since launching nono is Windows support. It's not surprising — a large share of developers who use AI coding agents work on Windows. Claude Code, Codex, and custom LLM tools all run on developer machines, and telling someone "switch to macOS or Linux first" isn't a real answer when they're trying to secure their workflow today.
+
+The challenge was always: how do you get kernel-enforced sandboxing on Windows? Windows doesn't have Landlock. It doesn't have Seatbelt. The native sandboxing primitives are fundamentally different, and building a separate enforcement backend would mean maintaining two security models with different guarantees — which is worse than having none at all.
+
+WSL2 changed the equation. It runs a real Linux kernel, not a compatibility layer. That means Landlock works. The same enforcement path, the same irrevocability, the same syscall-level isolation. We didn't have to compromise on the security model.
+
+nono v0.26.0 ships with full WSL2 support. Filesystem isolation, network filtering, credential injection, profiles, undo, and audit trail all work. The sandbox is kernel-enforced, just as it is on native Linux and macOS. If you're a Windows developer running AI agents, you now have the same protection as everyone else.
+
+## Getting started
+
+If you already have WSL2, installation is the same as Linux:
+
+```bash
+brew install nono
+```
+
+Then sandbox any process:
+
+```bash
+# Sandbox Claude Code
+nono run --profile claude-code --allow-cwd -- claude
+
+# Sandbox a Python agent with network filtering
+nono run --allow-cwd --network-profile minimal -- python my_agent.py
+
+# Check what works on your system
+nono setup --check-only
+```
+
+`nono setup --check-only` reports the full WSL2 feature matrix, so you can see exactly which capabilities are available on your kernel version.
+
+## How it works
+
+nono detects WSL2 at runtime using kernel-controlled indicators — specifically `/proc/sys/fs/binfmt_misc/WSLInterop` and `/proc/version`. Environment variables are intentionally not trusted, since they can be spoofed by a compromised process.
+
+Once detected, nono adjusts its feature set automatically. The core sandboxing path is unchanged: nono forks a child process, applies Landlock rules via `restrict_self()`, and execs your command inside the sandbox. The restrictions are irrevocable and inherited by all child processes, exactly as on native Linux.
+
+Your Windows filesystem is accessible via `/mnt/c` and subject to the same kernel-enforced allow-lists as any Linux path. If your profile grants read-write access to the current directory, that's all the agent gets — regardless of whether the files live on the Linux filesystem or the Windows mount.
+
+## What works
+
+The short answer: most of nono. The feature matrix breaks down like this:
+
+| Feature | Status |
+|---|---|
+| Filesystem isolation (Landlock) | Full support |
+| Network filtering (proxy) | Full support |
+| Credential injection (phantom tokens) | Full support |
+| Profiles and security groups | Full support |
+| Undo and rollback | Full support |
+| Audit trail | Full support |
+| Trust verification (signing) | Full support |
+| `nono learn` (profile generation) | Full support |
+| Network block (`--block-net`) | Full support |
+| Capability elevation (seccomp notify) | Unavailable |
+| Per-port network rules | Unavailable |
+| Proxy port enforcement | Opt-in via profile |
+
+Overall: **84% full feature parity**. The limitations are all caused by two WSL2 kernel issues.
+
+## What doesn't work (and why)
+
+### seccomp notify
+
+The [runtime supervisor's](/runtime-supervisor) capability elevation feature uses seccomp notify to intercept syscalls and pass file descriptors from the supervisor to the sandboxed process. On WSL2, `seccomp(SECCOMP_SET_MODE_FILTER, SECCOMP_FILTER_FLAG_NEW_LISTENER)` returns `EBUSY` — a [known WSL2 kernel bug](https://github.com/microsoft/WSL/issues/9548) with no fix timeline from Microsoft.
+
+nono detects this at startup, logs a warning, and continues without capability elevation. The sandbox itself is unaffected — you just can't dynamically expand permissions mid-session via the supervisor.
+
+### Per-port network rules
+
+Landlock ABI v4 (kernel 6.7+) added per-port network rules. The WSL2 kernel is currently 6.6, so these aren't available. nono falls back to domain-level filtering via the proxy, which covers the vast majority of use cases. When Microsoft ships a kernel upgrade, per-port rules will work automatically.
+
+### Credential proxy enforcement
+
+On native Linux, nono uses seccomp to ensure the sandboxed process can only reach the credential proxy — preventing it from bypassing the proxy and connecting to upstream APIs directly. On WSL2, this enforcement layer isn't available (same seccomp bug).
+
+By default, nono fails secure: if you request credential injection on WSL2, it refuses to start rather than run with weaker guarantees. Profiles can opt in to proxy-without-enforcement using the `wsl2_proxy_policy` field:
+
+```json
+{
+  "meta": { "name": "my-agent", "version": "1.0.0" },
+  "wsl2_proxy_policy": "insecure_proxy",
+  "network": {
+    "proxy_credentials": ["openai"]
+  }
+}
+```
+
+With `insecure_proxy`, the proxy runs and injects credentials, but the sandboxed process could theoretically bypass it. This is an explicit opt-in — nono won't silently weaken security.
+
+## The upgrade path
+
+Both WSL2 limitations have the same root cause: the WSL2 kernel is older than what Landlock and seccomp need. When Microsoft upgrades the WSL2 kernel to 6.7+, per-port network rules will work. If the seccomp notify bug is fixed, capability elevation and proxy enforcement will work too.
+
+nono checks the Landlock ABI version at startup and automatically enables features as they become available. There's nothing to configure — a kernel upgrade on Microsoft's side will unlock the remaining 16% of features without any changes to nono or your profiles.
+
+## Why this matters
+
+Windows is where a significant portion of developers work. AI coding agents — Claude Code, Codex, custom LLM tools — run on developer machines, and many of those machines run Windows. Until now, kernel-enforced sandboxing for these agents was only available on Linux and macOS.
+
+WSL2 makes this tractable because it runs a real Linux kernel, not a compatibility layer. nono doesn't need to implement a separate Windows sandbox backend — it uses the same Landlock enforcement path as native Linux. This means the security properties are identical: irrevocable, inherited by child processes, enforced at the syscall level.
+
+If you're running AI agents on Windows, you no longer need to choose between convenience and security.
+
+## What's next: native Windows sandboxing
+
+WSL2 support is the first step. We're also exploring native Windows sandboxing — enforcement that works without WSL2, using Windows' own security primitives. This is a harder problem (Windows doesn't have a direct equivalent to Landlock's unprivileged, per-process, irrevocable model), and it will take time to get right. We'd rather ship something with strong guarantees than rush out a weaker implementation.
+
+If native Windows sandboxing matters to you, follow the project on [GitHub](https://github.com/always-further/nono) or join the [Discord](https://discord.gg/pPcjYzGvbS) — we'll share progress there as it develops.
+
+## Next steps
+
+- **[OS Sandbox](/os-sandbox)** — How kernel enforcement works across all platforms
+- **[Isolate AI Agents](/guides/isolate-ai-agents)** — End-to-end guide to agent isolation
+- **[Docs](https://nono.sh/docs)** — Full CLI reference and WSL2 feature matrix
+- **[GitHub](https://github.com/always-further/nono)** — Source code
+- **[Discord](https://discord.gg/pPcjYzGvbS)** — Community

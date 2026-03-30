@@ -22,7 +22,7 @@ Run any Python script with default-deny filesystem access:
 nono run --allow-cwd -- python my_script.py
 ```
 
-The script can read and write in the current directory. Everything else — `~/.ssh`, `~/.aws`, `~/.gnupg`, system configs — is blocked at the kernel level. The restriction is enforced by Landlock (Linux) or Seatbelt (macOS) and cannot be bypassed from inside the process.
+The script can read and write in the current directory. Everything else — `~/.ssh`, `~/.aws`, `~/.gnupg`, system configs — is blocked at the kernel level. The restriction is enforced by Landlock (Linux and Windows/WSL2) or Seatbelt (macOS) and cannot be bypassed from inside the process.
 
 ## Add network filtering
 

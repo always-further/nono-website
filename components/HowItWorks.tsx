@@ -20,7 +20,7 @@ const steps = [
     label: "Enforce",
     title: "Kernel Sandbox",
     description:
-      "Landlock and Seatbelt create irrevocable allow-lists at the kernel level.",
+      "Landlock and Seatbelt create irrevocable allow-lists at the kernel level. Works on Linux, macOS, and Windows.",
   },
   {
     icon: Eye,

@@ -46,7 +46,7 @@ nono's governance model has four layers, each building on the previous:
 
 ### 1. Isolation
 
-The [kernel sandbox](/os-sandbox) is the foundation. Landlock (Linux) and Seatbelt (macOS) create an irrevocable allow-list at the kernel level. This is not a filter that inspects operations after the fact &mdash; it is a structural constraint that makes unauthorized operations impossible.
+The [kernel sandbox](/os-sandbox) is the foundation. Landlock (Linux and Windows/WSL2) and Seatbelt (macOS) create an irrevocable allow-list at the kernel level. This is not a filter that inspects operations after the fact &mdash; it is a structural constraint that makes unauthorized operations impossible.
 
 ### 2. Supervision
 

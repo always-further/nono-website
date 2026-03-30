@@ -45,7 +45,7 @@ export function ProcessInheritanceDiagram({
         <ProcessBox
           icon={<Lock size={13} strokeWidth={2} />}
           label={labels.parent}
-          sublabel="Applies Landlock / Seatbelt, then execs child"
+          sublabel="Applies kernel sandbox, then execs child"
           depth={0}
         />
 

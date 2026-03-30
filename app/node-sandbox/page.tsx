@@ -180,7 +180,7 @@ export default function NodeSandboxPage() {
           <div className="text-muted leading-relaxed space-y-4">
             <p>
               nono applies the sandbox before the Node.js process starts. On
-              Linux, it uses{" "}
+              Linux and Windows (WSL2), it uses{" "}
               <strong className="text-foreground">Landlock LSM</strong> to
               set kernel-enforced filesystem and network rules. On macOS, it
               uses{" "}

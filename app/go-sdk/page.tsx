@@ -7,12 +7,12 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Go SDK - Runtime Safety for Go AI Agents",
   description:
-    "Enforce kernel-level filesystem isolation from Go with nono-go. Landlock on Linux, Seatbelt on macOS.",
+    "Enforce kernel-level filesystem isolation from Go with nono-go. Landlock on Linux and Windows, Seatbelt on macOS.",
   alternates: { canonical: "/go-sdk" },
   openGraph: {
     title: "Go SDK - Runtime Safety for Go AI Agents",
     description:
-      "Enforce kernel-level filesystem isolation from Go with nono-go. Landlock on Linux, Seatbelt on macOS.",
+      "Enforce kernel-level filesystem isolation from Go with nono-go. Landlock on Linux and Windows, Seatbelt on macOS.",
     type: "website",
     images: [{ url: "/logo.png", width: 1200, height: 630, alt: "nono" }],
   },

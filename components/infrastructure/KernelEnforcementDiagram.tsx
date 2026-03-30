@@ -53,7 +53,7 @@ export function KernelEnforcementDiagram() {
             <DiagramBox label="AI Agent" sublabel="open(), exec(), connect()" variant="default" />
             <ConnectorArrow />
             <DiagramBox
-              label="Kernel + Landlock / Seatbelt"
+              label="Kernel + Landlock / Seatbelt / WSL2"
               sublabel="Allow-list enforced at syscall boundary"
               variant="strong"
               icon={<Lock size={13} strokeWidth={2} />}

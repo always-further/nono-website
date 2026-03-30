@@ -6,14 +6,14 @@ import { Lock, Layers } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Linux/MacOS Sandbox - Kernel-Level Isolation for AI Agents",
+  title: "OS Sandbox - Kernel-Level Isolation for AI Agents",
   description:
-    "How nono uses Linux Landlock and macOS Seatbelt to create irrevocable, kernel-enforced sandboxes for AI coding agents.",
+    "How nono uses Landlock, Seatbelt, and WSL2 to create irrevocable, kernel-enforced sandboxes for AI agents on Linux, macOS, and Windows.",
   alternates: { canonical: "/os-sandbox" },
   openGraph: {
-    title: "Linux/MacOS Sandbox - Kernel-Level Isolation for AI Agents",
+    title: "OS Sandbox - Kernel-Level Isolation for AI Agents",
     description:
-      "How nono uses Linux Landlock and macOS Seatbelt to create irrevocable, kernel-enforced sandboxes for AI coding agents.",
+      "How nono uses Landlock, Seatbelt, and WSL2 to create irrevocable, kernel-enforced sandboxes for AI agents on Linux, macOS, and Windows.",
     type: "website",
     images: [{ url: "/logo.png", width: 1200, height: 630, alt: "nono" }],
   },
@@ -124,7 +124,7 @@ export default function OsSandboxPage() {
     <InfraPageLayout
       title="Kernel-Level Isolation for AI Agents"
       tagline="Runtime Isolation"
-      description="nono uses Linux Landlock LSM and macOS Seatbelt to create irrevocable, kernel-enforced allow-lists. No root, no containers, no overhead."
+      description="nono uses Landlock (Linux and Windows/WSL2) and Seatbelt (macOS) to create irrevocable, kernel-enforced allow-lists. No root, no containers, no overhead."
       relatedPages={relatedPages}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -283,6 +283,63 @@ export default function OsSandboxPage() {
               proxy configuration in the profile. The result is behaviourally
               equivalent to the Linux implementation: the agent can only reach
               what the profile explicitly permits.
+            </p>
+          </div>
+        </GlassCard>
+
+        {/* Windows: WSL2 */}
+        <GlassCard className="md:col-span-2 p-8">
+          <h2 className="text-2xl font-bold tracking-tight mb-4">
+            Windows: WSL2
+          </h2>
+          <div className="text-muted leading-relaxed space-y-4">
+            <p>
+              On Windows, nono runs inside WSL2 and applies Landlock enforcement
+              to the Linux kernel that powers it. WSL2 runs a real Linux kernel
+              (currently 6.6), so Landlock&apos;s filesystem isolation works
+              natively. Your Windows filesystem is accessible via{" "}
+              <code className="px-1.5 py-0.5 rounded bg-code-bg border border-border font-mono text-xs">
+                /mnt/c
+              </code>{" "}
+              and subject to the same kernel-enforced allow-lists as any Linux
+              path.
+            </p>
+            <p>
+              nono detects WSL2 at runtime using kernel-controlled indicators
+              (not environment variables, which can be spoofed) and
+              automatically adjusts its feature set. Most features work
+              identically to native Linux. A small number of advanced features
+              are unavailable due to WSL2 kernel limitations:
+            </p>
+            <ul className="list-disc pl-6 space-y-1 text-sm">
+              <li>
+                <strong className="text-foreground">Capability elevation</strong>{" "}
+                via seccomp notify is disabled (WSL2 kernel bug). nono warns and
+                continues without it.
+              </li>
+              <li>
+                <strong className="text-foreground">Credential proxy enforcement</strong>{" "}
+                defaults to fail-secure. Profiles can opt in via the{" "}
+                <code className="px-1.5 py-0.5 rounded bg-code-bg border border-border font-mono text-xs">
+                  wsl2_proxy_policy
+                </code>{" "}
+                field when credential injection is needed without full network
+                lockdown.
+              </li>
+              <li>
+                <strong className="text-foreground">Per-port network rules</strong>{" "}
+                require Landlock ABI v4+, which will be available when the WSL2
+                kernel upgrades.
+              </li>
+            </ul>
+            <p>
+              Overall feature parity is 84%. Filesystem isolation, network
+              allowlists, profiles, undo, and audit trail all work. The
+              limitations are clearly surfaced via{" "}
+              <code className="px-1.5 py-0.5 rounded bg-code-bg border border-border font-mono text-xs">
+                nono setup --check-only
+              </code>{" "}
+              which reports the WSL2 feature matrix.
             </p>
           </div>
         </GlassCard>

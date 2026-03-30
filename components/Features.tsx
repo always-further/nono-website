@@ -38,7 +38,7 @@ const groups: FeatureGroup[] = [
         icon: Lock,
         title: "Isolation Sandbox",
         description:
-          "Landlock on Linux and Seatbelt on macOS create an irrevocable allow-list at the kernel level. Host-level network filtering with CIDR deny ranges blocks SSRF and data exfiltration.",
+          "Landlock on Linux and Windows (WSL2), Seatbelt on macOS — irrevocable allow-lists at the kernel level. Host-level network filtering with CIDR deny ranges blocks SSRF and data exfiltration.",
       },
       {
         icon: Box,

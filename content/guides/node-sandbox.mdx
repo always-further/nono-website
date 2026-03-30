@@ -6,7 +6,7 @@ date: "2026-03-26"
 
 Node.js agents and scripts run with your full user permissions. Every npm dependency in `node_modules` has the same access you do — your SSH keys, cloud credentials, and the entire filesystem. A single compromised package in the dependency tree can read, write, or exfiltrate anything.
 
-nono enforces kernel-level restrictions on the Node.js process before it starts. The sandbox is applied by the OS kernel (Landlock on Linux, Seatbelt on macOS) and cannot be loosened from inside the process. No `vm` module tricks, no V8 isolate escapes — the kernel denies the syscall directly.
+nono enforces kernel-level restrictions on the Node.js process before it starts. The sandbox is applied by the OS kernel (Landlock on Linux and Windows/WSL2, Seatbelt on macOS) and cannot be loosened from inside the process. No `vm` module tricks, no V8 isolate escapes — the kernel denies the syscall directly.
 
 ## Sandbox a Node.js process
 

@@ -123,8 +123,8 @@ export default function CliPage() {
             Filesystem Isolation
           </h3>
           <p className="text-sm text-muted leading-relaxed">
-            Default-deny filesystem access enforced by Landlock (Linux) and
-            Seatbelt (macOS). Only explicitly allowed paths are accessible.
+            Default-deny filesystem access enforced by Landlock (Linux and
+            Windows) and Seatbelt (macOS). Only explicitly allowed paths are accessible.
             Sensitive directories like ~/.ssh and ~/.aws are blocked by default.
           </p>
         </GlassCard>

@@ -166,8 +166,8 @@ export default function PythonSdkPage() {
             Kernel-Level Sandbox
           </h3>
           <p className="text-sm text-muted leading-relaxed">
-            Apply irrevocable filesystem restrictions via Landlock (Linux) or
-            Seatbelt (macOS). Define per-path access modes &mdash; read, write,
+            Apply irrevocable filesystem restrictions via Landlock (Linux and
+            Windows) or Seatbelt (macOS). Define per-path access modes &mdash; read, write,
             read-write. Everything not explicitly allowed is denied at the
             kernel level.
           </p>
