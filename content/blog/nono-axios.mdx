@@ -1,0 +1,153 @@
+---
+title: "How nono Prevents Supply Chain Attacks: A Case Study of the axios Compromise"
+seoTitle: "How nono Prevents Supply Chain Attacks: axios npm Case Study"
+date: "2026-03-31"
+description: "How nono's kernel-level sandbox stops supply chain attacks like the axios npm compromise — blocking RAT deployment, credential theft, and exfiltration."
+excerpt: "The tampered axios package deployed a cross-platform RAT via a postinstall hook. nono would block the attack chain at multiple points, even if the malicious code runs."
+author: "Luke Hinds"
+authorRole: "Maintainer"
+tags: ["Security", "Supply Chain Attacks", "npm", "axios", "nono"]
+---
+
+On March 31, 2026, attackers compromised the npm account of an axios maintainer and published malicious versions (1.14.1 and 0.30.4) of one of JavaScript's most popular HTTP libraries - with roughly 100 million downloads in the preceding week. The poisoned packages added a hidden dependency, `plain-crypto-js`, whose `postinstall` hook silently downloaded and deployed a cross-platform remote access trojan (RAT).
+
+This post walks through the attack chain and shows how nono's OS-enforced sandbox would block it at multiple points.
+
+## The Attack Chain
+
+The attack followed a classic supply chain pattern:
+
+1. **Account takeover** — The attacker hijacked a maintainer's npm account and changed the account email under their control.
+2. **Dependency injection** — Malicious axios versions added `plain-crypto-js@4.2.1` as a dependency. The package existed solely to run a `postinstall` hook.
+3. **C2 callback** — The `setup.js` postinstall script contacted `sfrclak[.]com:8000` to download platform-specific payloads.
+4. **RAT deployment** — Payloads were written to system paths:
+   - macOS: `/Library/Caches/com.apple.act.mond`
+   - Windows: `%PROGRAMDATA%\wt.exe`, temp VBScript and PowerShell files
+   - Linux: `/tmp/ld.py`
+5. **Self-cleaning & Evasion** — Once the RAT was staged, the setup.js script executed a cleanup routine that deleted the downloader and modified the local `package.json` to mirror the "clean" version (4.2.0). This ensured that a manual audit of node_modules would show a harmless, empty library rather than the malicious install hooks. Essentially, the attack was designed to make post-facto inspection of `node_modules` much less likely to reveal the malicious install hooks.
+
+Both release branches were hit within 39 minutes, and the payloads were pre-staged 18 hours in advance.
+
+The critical detail is step 2. When `npm install` resolves a dependency with a `postinstall` hook, it executes that script automatically with the full permissions of the user. There is no prompt, no confirmation, and no built-in sandbox. The attacker's code runs as you.
+
+## How nono Blocks the Attack Chain
+
+nono is a capability-based sandbox that uses OS kernel enforcement (Landlock on Linux and Windows/WSL2, Seatbelt on macOS) to make unauthorised operations structurally impossible. When an AI agent runs `npm install` inside a nono sandbox, the attack chain breaks at multiple points.
+
+### Network Isolation: The C2 Call Never Leaves the Machine
+
+nono's network proxy runs in the parent process, outside the sandbox. The sandboxed child process can only connect to localhost - all outbound traffic is routed through the proxy, which enforces an explicit host allowlist.
+
+A connection to `sfrclak[.]com:8000` would never reach the network. The proxy's `ProxyFilter` resolves DNS, checks every resolved IP against a link-local deny range (blocking cloud metadata SSRF at `169.254.169.254`), and rejects any host not on the allowlist. Without the C2 callback, the dropper has no payload to deploy.
+
+Even if the attacker embedded the payload directly in the npm package instead of downloading it, the remaining defenses still block execution.
+
+### Filesystem Restrictions: No Writes Outside the Project
+
+nono's `CapabilitySet` grants write access only to paths the user explicitly allows - typically the project directory and nothing more. The policy groups in `policy.json` define deny rules that block access to sensitive system locations.
+
+The RAT's write targets are all outside any reasonable project scope:
+
+| Platform | RAT Write Path | nono Response |
+|----------|---------------|---------------|
+| macOS | `/Library/Caches/com.apple.act.mond` | Denied — not in capability set |
+| Windows | `%PROGRAMDATA%\wt.exe` | Denied — not in capability set |
+| Linux | `/tmp/ld.py` | Denied if `/tmp` is not in the allow-list; profiles that grant `/tmp` write access should use network filtering to block the C2 callback instead |
+
+On macOS, Seatbelt enforces these restrictions at the kernel level via `sandbox_init()`. On Linux and Windows (WSL2), Landlock's allow-list model means any path not explicitly granted is denied by default. There is no fallback, no degraded mode, and no way for the postinstall script to escalate its own permissions — `PR_SET_NO_NEW_PRIVS` ensures that.
+
+### Credential Deny Rules: Secrets Are Unreachable
+
+Even if the RAT somehow deployed, its goal would be to exfiltrate credentials. nono blocks this from two directions.
+
+First, `policy.json` defines required deny groups that block access to credential stores across both platforms:
+
+- `~/.ssh`, `~/.gnupg`, `~/.aws`, `~/.azure`, `~/.kube`, `~/.docker`
+- `~/.npmrc`, `~/.git-credentials`, `~/.netrc`, `~/.vault-token`
+- macOS keychains (`~/Library/Keychains`, 1Password containers)
+- Browser data (Chrome, Firefox, Safari, Edge, Arc, Brave)
+
+These deny groups are marked `required: true` - they cannot be removed by profile configuration.
+
+Second, nono's network proxy uses a phantom token pattern for API credentials. The proxy loads real API keys from the system keystore at startup and holds them in `Zeroizing<String>` memory in the unsandboxed parent process. The sandboxed agent only ever sees a session token. Real credentials are injected into outbound requests by the proxy after the request leaves the sandbox. The agent - and any malware running inside the sandbox - never has access to the actual secrets.
+
+### Undo Snapshots: Self-Deletion Does Not Hide the Attack
+
+The axios RAT's evasion technique was to delete itself and overwrite `package.json` with a clean version after deployment. This makes post-infection inspection of `node_modules` appear normal.
+
+nono's undo system defeats this. Before the sandboxed process starts, a `SnapshotManager` takes a baseline of the tracked directory using a content-addressable `ObjectStore` (SHA-256 hashed, deduplicated). A `MerkleTree` provides cryptographic commitment over the entire filesystem state. During execution, incremental snapshots capture changes.
+
+When the RAT deletes its dropper and overwrites `package.json`, those mutations are recorded. The diff between baseline and current state reveals every file that was created, modified, or deleted — regardless of whether the malware cleaned up after itself. The user can review the changes and roll back to the pre-infection state.
+
+### No Escape Hatch: The Sandbox Is Permanent
+
+Once `Sandbox::apply()` executes, the restrictions are irreversible. On macOS, `sandbox_init()` is a one-way operation enforced by the kernel. On Linux, Landlock rules combined with `PR_SET_NO_NEW_PRIVS` prevent any privilege escalation.
+
+The npm `postinstall` hook runs inside the same sandbox as everything else. There is no API it can call to expand its own permissions, no environment variable it can set to disable enforcement, and no race condition it can exploit to escape. The sandbox is applied before the child process runs, and it persists for the lifetime of that process.
+
+## Defence in Depth
+
+No single defense is the full story. nono's value is that it applies multiple independent layers, each enforced by the operating system kernel:
+
+| Attack Step | nono Defense Layer |
+|------------|-------------------|
+| C2 callback to download payload | Network proxy allowlist blocks unknown hosts |
+| Write RAT binary to system path | Filesystem capability set denies writes outside project |
+| Exfiltrate credentials | Deny groups block credential paths; proxy hides real keys |
+| Self-delete to hide evidence | Undo snapshots capture all mutations with cryptographic commitment |
+| Escalate privileges | `PR_SET_NO_NEW_PRIVS` + irreversible sandbox application |
+
+An attacker would need to defeat all of these layers simultaneously. Each layer is enforced at the OS kernel level, not by application-level hooks that malware could bypass.
+
+## The postinstall problem
+
+The axios attack is not unique in abusing the JavaScript supply chain. Recent incidents such as ua-parser-js, event-stream, and colors.js differed in their mechanics, but they all show the same underlying problem: installing third-party packages can execute or deliver untrusted code into a trusted environment. The pattern keeps working because the fundamentals haven't changed.
+
+Most developers don't know which of their hundreds of transitive dependencies have postinstall hooks. The ones that do are often legitimate — native compilation via node-gyp, binary downloads for esbuild or sharp, setup scripts for toolchains. Disabling them entirely with `--ignore-scripts` breaks these packages.
+
+This is the gap nono fills. You don't need to disable postinstall hooks or audit every dependency's install scripts. Run `npm install` inside a nono sandbox and every hook executes — but inside a kernel-enforced boundary where it can't reach your credentials, can't call unknown hosts, and can't write outside the project directory. nono does not disable install hooks; it confines them. Legitimate hooks need the access they actually require, and malicious ones cannot exceed the granted policy.
+
+This isn't limited to AI agent workflows. Any project with npm dependencies benefits from sandboxed installs.
+
+## Try it: sandbox your next npm install
+
+```bash
+brew install nono
+
+# Sandbox npm install using the built-in node profile
+nono run --profile node -- npm install
+
+# More restrictive: block all network, allow only what's needed
+nono run --read ~/.npm --allow ./node_modules --block-net -- npm install
+
+# Sandbox a Node.js agent with network filtering and credential injection
+nono run --allow-cwd --network-profile minimal \
+  --proxy-credential openai \
+  -- node my_agent.js
+```
+
+The built-in `node` profile includes the `node_runtime` paths (`~/.nvm`, `~/.npm`, etc.) so most installs work out of the box. If you want to discover exactly what a specific install needs, use `nono learn`:
+
+```bash
+# Trace an npm install to generate a profile
+nono learn npm install
+```
+
+Review the output, save it as a profile, and every subsequent install runs with the same sandboxed restrictions. Postinstall hooks execute — but inside a kernel-enforced boundary where they can't reach your credentials, can't call unknown hosts, and can't write outside the allowed paths.
+
+## The Broader Lesson
+
+The axios attack is a textbook example of how nono provides the protections required to run agents safely. Dependency trees are deep, maintainer accounts are soft targets, and `postinstall` hooks execute arbitrary code with the full permissions of the installing process.
+
+Static analysis and lockfiles help detect known-bad packages after the fact. nono operates at a different layer: it ensures that even if malicious code runs, it cannot do anything meaningful. The filesystem is locked down, the network is filtered, credentials are out of reach, and every change is recorded.
+
+The question is not whether your dependencies will be compromised — it is whether your environment is prepared when they are.
+
+## Next steps
+
+- **[Node.js Sandbox](/node-sandbox)** — Deep dive into sandboxing Node.js agents
+- **[OS Sandbox](/os-sandbox)** — How Landlock and Seatbelt enforcement works under the hood
+- **[LiteLLM Case Study](/blog/nono-litellm)** — How nono stops a Python supply chain attack
+- **[Credential Injection](/blog/blog-credential-injection)** — The phantom token pattern in detail
+- **[Docs](https://nono.sh/docs)** — Full CLI reference
+- **[GitHub](https://github.com/always-further/nono)** — Source code
