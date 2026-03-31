@@ -52,7 +52,7 @@ The RAT's write targets are all outside any reasonable project scope:
 |----------|---------------|---------------|
 | macOS | `/Library/Caches/com.apple.act.mond` | Denied — not in capability set |
 | Windows | `%PROGRAMDATA%\wt.exe` | Denied — not in capability set |
-| Linux | `/tmp/ld.py` | Denied in typical project-scoped profiles; if `/tmp` is explicitly granted, network filtering still blocks payload download |
+| Linux | `/tmp/ld.py` | Denied if `/tmp` is not in the allow-list; profiles that grant `/tmp` write access should use network filtering to block the C2 callback instead |
 
 On macOS, Seatbelt enforces these restrictions at the kernel level via `sandbox_init()`. On Linux and Windows (WSL2), Landlock's allow-list model means any path not explicitly granted is denied by default. There is no fallback, no degraded mode, and no way for the postinstall script to escalate its own permissions — `PR_SET_NO_NEW_PRIVS` ensures that.
 
@@ -105,35 +105,11 @@ The axios attack is not unique in abusing the JavaScript supply chain. Recent in
 
 Most developers don't know which of their hundreds of transitive dependencies have postinstall hooks. The ones that do are often legitimate — native compilation via node-gyp, binary downloads for esbuild or sharp, setup scripts for toolchains. Disabling them entirely with `--ignore-scripts` breaks these packages.
 
+![nono tmp block](/nono-npm.png)
+
 This is the gap nono fills. You don't need to disable postinstall hooks or audit every dependency's install scripts. Run `npm install` inside a nono sandbox and every hook executes — but inside a kernel-enforced boundary where it can't reach your credentials, can't call unknown hosts, and can't write outside the project directory. nono does not disable install hooks; it confines them. Legitimate hooks need the access they actually require, and malicious ones cannot exceed the granted policy.
 
 This isn't limited to AI agent workflows. Any project with npm dependencies benefits from sandboxed installs.
-
-## Try it: sandbox your next npm install
-
-```bash
-brew install nono
-
-# Sandbox npm install using the built-in node profile
-nono run --profile node -- npm install
-
-# More restrictive: block all network, allow only what's needed
-nono run --read ~/.npm --allow ./node_modules --block-net -- npm install
-
-# Sandbox a Node.js agent with network filtering and credential injection
-nono run --allow-cwd --network-profile minimal \
-  --proxy-credential openai \
-  -- node my_agent.js
-```
-
-The built-in `node` profile includes the `node_runtime` paths (`~/.nvm`, `~/.npm`, etc.) so most installs work out of the box. If you want to discover exactly what a specific install needs, use `nono learn`:
-
-```bash
-# Trace an npm install to generate a profile
-nono learn npm install
-```
-
-Review the output, save it as a profile, and every subsequent install runs with the same sandboxed restrictions. Postinstall hooks execute — but inside a kernel-enforced boundary where they can't reach your credentials, can't call unknown hosts, and can't write outside the allowed paths.
 
 ## The Broader Lesson
 
