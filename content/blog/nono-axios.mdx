@@ -52,7 +52,7 @@ The RAT's write targets are all outside any reasonable project scope:
 |----------|---------------|---------------|
 | macOS | `/Library/Caches/com.apple.act.mond` | Denied — not in capability set |
 | Windows | `%PROGRAMDATA%\wt.exe` | Denied — not in capability set |
-| Linux | `/tmp/ld.py` | Denied if `/tmp` is not in the allow-list; profiles that grant `/tmp` write access should use network filtering to block the C2 callback instead |
+| Linux | `/tmp/ld.py` | Denied in typical project-scoped profiles; if `/tmp` is explicitly granted, network filtering still blocks payload download |
 
 On macOS, Seatbelt enforces these restrictions at the kernel level via `sandbox_init()`. On Linux and Windows (WSL2), Landlock's allow-list model means any path not explicitly granted is denied by default. There is no fallback, no degraded mode, and no way for the postinstall script to escalate its own permissions — `PR_SET_NO_NEW_PRIVS` ensures that.
 
