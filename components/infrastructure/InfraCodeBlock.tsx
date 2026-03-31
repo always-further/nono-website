@@ -17,7 +17,7 @@ export function InfraCodeBlock({
 }: InfraCodeBlockProps) {
   return (
     <div className={`border border-code-border bg-code-bg text-code-text ${className ?? ""}`}>
-      <div className="px-4 py-2 border-b border-code-border">
+      <div className="px-8 py-3 border-b border-code-border">
         <span className="text-xs font-mono text-code-text/60">
           {filename ?? language}
         </span>
@@ -25,7 +25,7 @@ export function InfraCodeBlock({
       <Highlight theme={themes.nightOwl} code={code.trim()} language={language}>
         {({ tokens, getLineProps, getTokenProps }) => (
           <pre
-            className="p-4 overflow-x-auto text-xs leading-relaxed font-mono"
+            className="px-8 py-4 overflow-x-auto text-xs leading-relaxed font-mono"
             style={{ background: "transparent" }}
           >
             {tokens.map((line, i) => (

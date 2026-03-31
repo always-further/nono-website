@@ -4,7 +4,7 @@ export default function SoftwareApplicationSchema() {
     '@type': 'SoftwareApplication',
     name: 'nono',
     applicationCategory: 'SecurityApplication',
-    operatingSystem: 'macOS, Linux',
+    operatingSystem: 'macOS, Linux, Windows',
     offers: {
       '@type': 'Offer',
       price: '0',
@@ -13,7 +13,7 @@ export default function SoftwareApplicationSchema() {
     url: 'https://nono.sh',
     downloadUrl: 'https://github.com/always-further/nono',
     description:
-      'OS-enforced capability sandbox for running untrusted AI agents. Kernel-level isolation using Seatbelt (macOS) and Landlock (Linux).',
+      'OS-enforced capability sandbox for running untrusted AI agents. Kernel-level isolation using Seatbelt (macOS), Landlock (Linux), and WSL2 (Windows).',
     author: {
       '@type': 'Organization',
       name: 'Always Further',

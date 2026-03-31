@@ -18,7 +18,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "runtime-supervisor",
   ];
 
-  const sdkPages = ["python-sdk", "typescript-sdk"];
+  const sandboxPages = ["python-sandbox", "node-sandbox"];
+
+  const sdkPages = ["python-sdk", "typescript-sdk", "go-sdk", "cli"];
 
   return [
     {
@@ -31,6 +33,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `https://nono.sh/${page}`,
       lastModified: new Date(),
       changeFrequency: "monthly" as const,
+      priority: 0.9,
+    })),
+    ...sandboxPages.map((page) => ({
+      url: `https://nono.sh/${page}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
       priority: 0.9,
     })),
     ...sdkPages.map((page) => ({

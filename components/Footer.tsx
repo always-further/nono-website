@@ -22,20 +22,17 @@ interface FooterColumn {
 
 const columns: FooterColumn[] = [
   {
-    title: "Product",
+    title: "Sandboxes",
     links: [
-      { label: "Home", href: "/" },
-      {
-        label: "GitHub",
-        href: "https://github.com/always-further/nono",
-        external: true,
-      },
+      { label: "OS Sandbox", href: "/os-sandbox" },
+      { label: "Python Sandbox", href: "/python-sandbox" },
+      { label: "Node.js Sandbox", href: "/node-sandbox" },
     ],
   },
   {
-    title: "Infrastructure",
+    title: "Features",
     links: [
-      { label: "Linux/MacOS Sandbox", href: "/os-sandbox" },
+      { label: "Kernel Isolation", href: "/os-sandbox" },
       { label: "Undo & Rollback", href: "/undo" },
       { label: "Audit Trail", href: "/audit-trail" },
       { label: "Provenance", href: "/provenance" },
@@ -45,8 +42,9 @@ const columns: FooterColumn[] = [
   {
     title: "SDKs",
     links: [
-      { label: "Python SDK", href: "/python-sdk" },
-      { label: "TypeScript SDK", href: "/typescript-sdk" },
+      { label: "CLI", href: "/cli" },
+      { label: "Python", href: "/python-sdk" },
+      { label: "TypeScript", href: "/typescript-sdk" },
     ],
   },
   {
@@ -54,6 +52,11 @@ const columns: FooterColumn[] = [
     links: [
       { label: "Blog", href: "/blog" },
       { label: "Docs", href: DOCS_URL, external: true },
+      {
+        label: "GitHub",
+        href: "https://github.com/always-further/nono",
+        external: true,
+      },
       {
         label: "Discord",
         href: "https://discord.gg/pPcjYzGvbS",
@@ -67,7 +70,7 @@ export default function Footer() {
   return (
     <footer className="py-16 px-6 border-t border-border">
       <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-16">
           {columns.map((col) => (
             <div key={col.title}>
               <h3 className="text-xs font-mono uppercase tracking-[0.15em] text-foreground mb-4">

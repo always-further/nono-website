@@ -25,6 +25,7 @@ export const metadata: Metadata = {
     "kernel sandboxing",
     "Seatbelt sandbox",
     "Landlock sandbox",
+    "WSL2 sandbox",
     "secure AI agents",
     "network filtering proxy",
     "SSRF protection",

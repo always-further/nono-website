@@ -79,7 +79,7 @@ export function SdkPageLayout({
               {[
                 {
                   href: "/os-sandbox",
-                  label: "Linux/MacOS Sandbox",
+                  label: "OS Sandbox",
                   desc: "How kernel isolation works under the hood",
                   external: false,
                 },

@@ -5,59 +5,71 @@ import { Lock, Shield, Search } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "TypeScript SDK - Runtime Safety for TypeScript AI Agents",
+  title: "Go SDK - Runtime Safety for Go AI Agents",
   description:
-    "Enforce kernel-level filesystem isolation from TypeScript with nono-ts. Landlock on Linux and Windows, Seatbelt on macOS.",
-  alternates: { canonical: "/typescript-sdk" },
+    "Enforce kernel-level filesystem isolation from Go with nono-go. Landlock on Linux and Windows, Seatbelt on macOS.",
+  alternates: { canonical: "/go-sdk" },
   openGraph: {
-    title: "TypeScript SDK - Runtime Safety for TypeScript AI Agents",
+    title: "Go SDK - Runtime Safety for Go AI Agents",
     description:
-      "Enforce kernel-level filesystem isolation from TypeScript with nono-ts. Landlock on Linux and Windows, Seatbelt on macOS.",
+      "Enforce kernel-level filesystem isolation from Go with nono-go. Landlock on Linux and Windows, Seatbelt on macOS.",
     type: "website",
     images: [{ url: "/logo.png", width: 1200, height: 630, alt: "nono" }],
   },
 };
 
-const quickStart = `import { CapabilitySet, AccessMode, apply } from 'nono-ts';
+const quickStart = `package main
 
-// Define capabilities
-const caps = new CapabilitySet();
-caps.allowPath('/project', AccessMode.ReadWrite);
-caps.allowFile('/home/user/.gitconfig', AccessMode.Read);
-caps.blockNetwork(); // deny all outbound connections
+import (
+	"github.com/always-further/nono-go"
+)
 
-// Apply sandbox (irrevocable)
-apply(caps);
+func main() {
+	// Define capabilities
+	caps := nono.NewCapabilitySet()
+	caps.AllowPath("/project", nono.ReadWrite)
+	caps.AllowFile("/home/user/.gitconfig", nono.Read)
+	caps.BlockNetwork() // deny all outbound connections
 
-// Your agent code runs here, fully sandboxed
-await agent.run();`;
+	// Apply sandbox (irrevocable)
+	if err := nono.Apply(caps); err != nil {
+		log.Fatal(err)
+	}
 
-const queryCode = `import {
-  CapabilitySet, AccessMode, QueryContext,
-  isSupported, supportInfo
-} from 'nono-ts';
+	// Your agent code runs here, fully sandboxed
+	agent.Run()
+}`;
 
-// Check platform support
-const info = supportInfo();
-console.log(info.platform, info.details);
+const queryCode = `package main
 
-// Build capabilities and dry-run check
-const caps = new CapabilitySet();
-caps.allowPath('/project', AccessMode.ReadWrite);
+import (
+	"fmt"
+	"github.com/always-further/nono-go"
+)
 
-const ctx = new QueryContext(caps);
-const result = ctx.queryPath('/etc/passwd', AccessMode.Read);
-console.log(result.status); // "denied"
-console.log(result.reason); // explains why`;
+func main() {
+	// Check platform support
+	info := nono.SupportInfo()
+	fmt.Println(info.Platform, info.Details)
 
-export default function TypeScriptSdkPage() {
+	// Build capabilities and dry-run check
+	caps := nono.NewCapabilitySet()
+	caps.AllowPath("/project", nono.ReadWrite)
+
+	ctx := nono.NewQueryContext(caps)
+	result := ctx.QueryPath("/etc/passwd", nono.Read)
+	fmt.Println(result.Status) // "denied"
+	fmt.Println(result.Reason) // explains why
+}`;
+
+export default function GoSdkPage() {
   return (
     <SdkPageLayout
-      language="TypeScript"
-      packageName="nono-ts"
-      installCommand="npm install nono-ts"
-      registryUrl="https://www.npmjs.com/package/nono-ts"
-      registryName="npm"
+      language="Go"
+      packageName="nono-go"
+      installCommand="go get github.com/always-further/nono-go"
+      registryUrl="https://pkg.go.dev/github.com/always-further/nono-go"
+      registryName="pkg.go.dev"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <GlassCard className="md:col-span-2 p-8">
@@ -66,27 +78,28 @@ export default function TypeScriptSdkPage() {
           </h2>
           <div className="text-muted leading-relaxed space-y-4">
             <p>
-              The TypeScript SDK provides native N-API bindings to nono&apos;s core
-              Rust library. When you call{" "}
+              The Go SDK provides CGo bindings to nono&apos;s core Rust library.
+              When you call{" "}
               <code className="px-1.5 py-0.5 rounded bg-code-bg border border-border font-mono text-xs">
-                apply(caps)
+                nono.Apply(caps)
               </code>
               , the SDK applies kernel-level Landlock rules (Linux) or Seatbelt
-              profiles (macOS) to the Node.js process. The sandbox is irrevocable
-              and inherited by all child processes.
+              profiles (macOS) to the current process. The sandbox is irrevocable
+              &mdash; it cannot be loosened after application.
             </p>
             <p>
-              This works with any Node.js runtime &mdash; standard Node, Bun, or
-              Deno. The native bindings load the correct platform-specific
-              library automatically. Use{" "}
+              This means your Go AI agent and every subprocess it spawns operate
+              within the defined capability set. Filesystem access is constrained
+              at the kernel level, not by application-level checks that can be
+              bypassed. Use{" "}
               <code className="px-1.5 py-0.5 rounded bg-code-bg border border-border font-mono text-xs">
                 QueryContext
               </code>{" "}
-              to dry-run permission checks before applying the sandbox, and{" "}
+              to dry-run permission checks and{" "}
               <code className="px-1.5 py-0.5 rounded bg-code-bg border border-border font-mono text-xs">
                 SandboxState
               </code>{" "}
-              to serialize and restore capability sets.
+              to serialize capability sets.
             </p>
           </div>
         </GlassCard>
@@ -94,12 +107,12 @@ export default function TypeScriptSdkPage() {
         <GlassCard className="p-6" glowColor="purple" hoverable>
           <Lock size={20} className="text-accent mb-4" strokeWidth={1.5} />
           <h3 className="text-lg font-semibold mb-2 tracking-tight">
-            Type-Safe API
+            Filesystem Isolation
           </h3>
           <p className="text-sm text-muted leading-relaxed">
-            Full TypeScript type definitions with strict mode support. The
-            CapabilitySet builder pattern catches policy errors at compile time.
-            All async operations return properly typed Promises.
+            Define per-path access modes (read, write, read-write) with
+            fine-grained control. Only explicitly allowed paths are accessible
+            &mdash; everything else is denied by default at the kernel level.
           </p>
         </GlassCard>
 
@@ -110,24 +123,24 @@ export default function TypeScriptSdkPage() {
             strokeWidth={1.5}
           />
           <h3 className="text-lg font-semibold mb-2 tracking-tight">
-            Runtime Compatibility
+            Static Binary Support
           </h3>
           <p className="text-sm text-muted leading-relaxed">
-            Works with Node.js 18+, Bun, and Deno. The native N-API bindings
-            load platform-specific libraries automatically. ESM and CJS module
-            formats are both supported.
+            Compiles to a single static binary with CGo bindings to nono&apos;s
+            Rust core. No runtime dependencies beyond the kernel. Works with
+            standard Go build tooling and cross-compilation.
           </p>
         </GlassCard>
 
         <InfraCodeBlock
           code={quickStart}
-          language="typescript"
-          filename="sandbox.ts"
+          language="go"
+          filename="main.go"
         />
         <InfraCodeBlock
           code={queryCode}
-          language="typescript"
-          filename="query.ts"
+          language="go"
+          filename="query.go"
         />
 
         <GlassCard className="md:col-span-2 p-8">
@@ -139,7 +152,7 @@ export default function TypeScriptSdkPage() {
               {
                 icon: Lock,
                 title: "CapabilitySet",
-                desc: "Builder pattern for defining filesystem access, network blocking, and command rules. Irrevocable after apply().",
+                desc: "Builder pattern for defining filesystem access, network blocking, and command rules. Irrevocable after Apply().",
               },
               {
                 icon: Search,

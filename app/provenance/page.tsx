@@ -26,7 +26,7 @@ const relatedPages = [
   },
   {
     href: "/os-sandbox",
-    label: "Linux/MacOS Sandbox",
+    label: "OS Sandbox",
     description: "Kernel-level filesystem isolation",
   },
 ];

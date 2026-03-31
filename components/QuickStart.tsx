@@ -10,8 +10,13 @@ const codeExamples = [
     code: `brew install nono`,
   },
   {
+    label: "Windows (WSL2)",
+    code: `# Inside WSL2
+brew install nono`,
+  },
+  {
     label: "Source",
-    code: `# Build from source
+    code: `# Build from source (requires Rust toolchain)
 cargo build --release
 
 # Binary will be at target/release/nono`,
@@ -83,6 +88,11 @@ export default function QuickStart() {
           <div className="flex items-center gap-2 text-sm text-muted">
             <Monitor className="w-4 h-4" />
             <span>Linux via Landlock</span>
+          </div>
+          <div className="w-px h-4 bg-border" />
+          <div className="flex items-center gap-2 text-sm text-muted">
+            <Monitor className="w-4 h-4" />
+            <span>Windows via WSL2</span>
           </div>
         </div>
 
