@@ -150,6 +150,11 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        source: "/book",
+        destination: "https://calendar.app.google/hPpdjdGoreaTP7cZA",
+        permanent: false,
+      },
+      {
         source:
           "/:path((?!docs(?:/|$)|blog(?:/|$)|os-sandbox(?:/|$)|python-sandbox(?:/|$)|node-sandbox(?:/|$)|undo(?:/|$)|audit-trail(?:/|$)|provenance(?:/|$)|runtime-supervisor(?:/|$)|python-sdk(?:/|$)|typescript-sdk(?:/|$)|go-sdk(?:/|$)|cli(?:/|$)|guides(?:/|$)|academy(?:/|$)|mintlify-assets(?:/|$)|_next(?:/|$)|api(?:/|$)|opengraph-image$|favicon\\.ico$|robots\\.txt$|sitemap\\.xml$|.*\\.[^/]+$).+)",
         destination: "/docs/:path",
