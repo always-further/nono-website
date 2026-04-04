@@ -91,7 +91,7 @@ export function CodeBlock({
                   {...getLineProps({ line })}
                   className={
                     isHighlighted
-                      ? "bg-white/5 -mx-4 px-4 border-l-2 border-foreground"
+                      ? "bg-surface-hover -mx-4 px-4 border-l-2 border-accent"
                       : ""
                   }
                 >
