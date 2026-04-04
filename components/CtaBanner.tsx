@@ -16,7 +16,7 @@ export default function CtaBanner() {
             Kernel-level isolation, cryptographic audit trails, and atomic rollbacks. Open source and ready to deploy.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <GradientButton href={`${DOCS_URL}/cli/getting_started/installation`} external size="lg">
+            <GradientButton href="https://nono.sh/docs/cli/getting_started/quickstart" external size="lg">
               Get Started <ArrowRight size={14} />
             </GradientButton>
             <GradientButton href={DOCS_URL} external variant="outline" size="lg">

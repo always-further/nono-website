@@ -21,7 +21,7 @@ export default function Hero() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 mb-8 justify-center">
-          <GradientButton href="https://github.com/always-further/nono" external size="lg">
+          <GradientButton href="https://nono.sh/docs/cli/getting_started/quickstart" external size="lg">
             Get Started <ArrowRight size={16} />
           </GradientButton>
           <GradientButton href={DOCS_URL} external variant="outline" size="lg">
