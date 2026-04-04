@@ -28,7 +28,7 @@ export function InstallSnippet() {
               onClick={() => setActive(i)}
               className={`px-4 py-2 text-xs font-mono uppercase tracking-wider transition-colors ${
                 i === active
-                  ? "text-code-text bg-white/5"
+                  ? "text-code-text bg-surface-hover"
                   : "text-code-text/50 hover:text-code-text"
               }`}
             >

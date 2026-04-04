@@ -101,15 +101,15 @@ export default function CliPage() {
           <h2 className="text-2xl font-bold tracking-tight mb-4">Install</h2>
           <div className="text-muted leading-relaxed space-y-4">
             <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1 px-4 py-3 border border-code-border bg-code-bg">
-                <div className="text-xs text-muted mb-1">Homebrew</div>
-                <code className="font-mono text-sm text-code-text">
+              <div className="flex-1 px-4 py-3 border border-terminal-border bg-terminal-bg">
+                <div className="text-xs text-terminal-text/50 mb-1">Homebrew</div>
+                <code className="font-mono text-sm text-terminal-text">
                   brew install nono
                 </code>
               </div>
-              <div className="flex-1 px-4 py-3 border border-code-border bg-code-bg">
-                <div className="text-xs text-muted mb-1">Cargo</div>
-                <code className="font-mono text-sm text-code-text">
+              <div className="flex-1 px-4 py-3 border border-terminal-border bg-terminal-bg">
+                <div className="text-xs text-terminal-text/50 mb-1">Cargo</div>
+                <code className="font-mono text-sm text-terminal-text">
                   cargo install nono
                 </code>
               </div>

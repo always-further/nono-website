@@ -1,21 +1,55 @@
 @import "tailwindcss";
 
 :root,
+[data-theme="light"] {
+  --background: #f9f9f7;
+  --background-secondary: #fafafa;
+  --surface: rgba(0, 0, 0, 0.02);
+  --surface-hover: rgba(0, 0, 0, 0.04);
+
+  --foreground: #1a1a1a;
+  --muted: #888888;
+  --muted-strong: #555555;
+
+  --accent: #e8734a;
+  --accent-hover: #d4623b;
+  --accent-blue: #e8734a;
+  --accent-teal: #e8734a;
+  --accent-glow: rgba(232, 115, 74, 0.08);
+
+  --border: rgba(0, 0, 0, 0.1);
+  --border-strong: rgba(0, 0, 0, 0.2);
+
+  --code-bg: #f0f0ee;
+  --code-text: #1a1a1a;
+  --code-border: rgba(0, 0, 0, 0.1);
+
+  --terminal-bg: #1a1a1a;
+  --terminal-text: #d4d4d4;
+  --terminal-border: rgba(0, 0, 0, 0.15);
+
+  --selection-bg: rgba(232, 115, 74, 0.2);
+  --selection-color: #1a1a1a;
+  --btn-primary-bg: #e8734a;
+  --btn-primary-text: #ffffff;
+  --btn-primary-hover: #d4623b;
+}
+
 [data-theme="dark"] {
-  --background: #000000;
-  --background-secondary: #050505;
+  --background: #111110;
+  --background-secondary: #191918;
   --surface: rgba(255, 255, 255, 0.03);
   --surface-hover: rgba(255, 255, 255, 0.06);
 
   --foreground: #e8e8e8;
-  --muted: #777777;
-  --muted-strong: #999999;
+  --muted: #888888;
+  --muted-strong: #aaaaaa;
 
-  --accent: #ffffff;
-  --accent-hover: #cccccc;
-  --accent-blue: #ffffff;
-  --accent-teal: #ffffff;
-  --accent-glow: rgba(255, 255, 255, 0.08);
+  --accent: #e8734a;
+  --accent-hover: #f0845e;
+  --accent-blue: #e8734a;
+  --accent-teal: #e8734a;
+  --accent-glow: rgba(232, 115, 74, 0.12);
 
   --border: rgba(255, 255, 255, 0.1);
   --border-strong: rgba(255, 255, 255, 0.2);
@@ -24,41 +58,15 @@
   --code-text: #d4d4d4;
   --code-border: rgba(255, 255, 255, 0.1);
 
-  --selection-bg: rgba(255, 255, 255, 0.25);
+  --terminal-bg: #0a0a0a;
+  --terminal-text: #d4d4d4;
+  --terminal-border: rgba(255, 255, 255, 0.1);
+
+  --selection-bg: rgba(232, 115, 74, 0.3);
   --selection-color: white;
-  --btn-primary-bg: #ffffff;
-  --btn-primary-text: #000000;
-  --btn-primary-hover: #e0e0e0;
-}
-
-[data-theme="light"] {
-  --background: #ffffff;
-  --background-secondary: #f5f5f5;
-  --surface: rgba(0, 0, 0, 0.03);
-  --surface-hover: rgba(0, 0, 0, 0.06);
-
-  --foreground: #1a1a1a;
-  --muted: #666666;
-  --muted-strong: #444444;
-
-  --accent: #000000;
-  --accent-hover: #333333;
-  --accent-blue: #000000;
-  --accent-teal: #000000;
-  --accent-glow: rgba(0, 0, 0, 0.08);
-
-  --border: rgba(0, 0, 0, 0.1);
-  --border-strong: rgba(0, 0, 0, 0.2);
-
-  --code-bg: #1a1a1a;
-  --code-text: #d4d4d4;
-  --code-border: rgba(255, 255, 255, 0.1);
-
-  --selection-bg: rgba(0, 0, 0, 0.15);
-  --selection-color: black;
-  --btn-primary-bg: #000000;
+  --btn-primary-bg: #e8734a;
   --btn-primary-text: #ffffff;
-  --btn-primary-hover: #222222;
+  --btn-primary-hover: #f0845e;
 }
 
 @theme inline {
@@ -79,6 +87,9 @@
   --color-code-bg: var(--code-bg);
   --color-code-text: var(--code-text);
   --color-code-border: var(--code-border);
+  --color-terminal-bg: var(--terminal-bg);
+  --color-terminal-text: var(--terminal-text);
+  --color-terminal-border: var(--terminal-border);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

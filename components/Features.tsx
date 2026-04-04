@@ -142,8 +142,8 @@ export default function Features() {
               onClick={() => setActive(i)}
               className={`px-4 py-2 text-sm rounded-lg transition-colors cursor-pointer ${
                 i === active
-                  ? "bg-white/10 text-foreground"
-                  : "text-muted hover:text-foreground hover:bg-white/[0.04]"
+                  ? "bg-surface-hover text-foreground"
+                  : "text-muted hover:text-foreground hover:bg-surface"
               }`}
             >
               {g.label}
@@ -169,7 +169,7 @@ export default function Features() {
             {group.features.map((feature, index) => (
               <div
                 key={feature.title}
-                className={`p-8 md:p-10 hover:bg-white/[0.02] transition-colors ${
+                className={`p-8 md:p-10 hover:bg-surface transition-colors ${
                   index < group.features.length - 1
                     ? "border-b md:border-b-0 md:border-r border-border"
                     : ""
