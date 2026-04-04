@@ -93,30 +93,25 @@ Supervised mode: child sandboxed, parent manages network proxy.
 
 Applying Kernel sandbox protections.`;
 
-const landlockCode = `use landlock::{
-    ABI, Access, AccessFs, AccessNet, BitFlags,
-    PathBeneath, PathFd, Ruleset, RulesetAttr,
-    RulesetCreatedAttr,
-};
-
-const TARGET_ABI: ABI = ABI::V5;
-
-pub fn apply_sandbox(caps: &CapabilitySet) -> Result<()> {
-    let mut ruleset = Ruleset::default()
-        .handle_access(AccessFs::from_all(TARGET_ABI))?
-        .create()?;
-
-    for (path, access_mode) in caps.paths() {
-        let flags = access_to_landlock(access_mode);
-        let fd = PathFd::new(path)?;
-        ruleset = ruleset.add_rule(
-            PathBeneath::new(fd, flags)
-        )?;
-    }
-
-    // Irrevocable: cannot be loosened after this call
-    ruleset.restrict_self()?;
-    Ok(())
+const profileOverrideCode = `{
+  "meta": {
+    "name": "no-docker",
+    "version": "1.0.0"
+  },
+  "extends": "claude-code",
+  "policy": {
+    "add_deny_access": ["/var/run/docker.sock"],
+    "add_deny_commands": [
+      "docker", "docker-compose", "podman", "kubectl"
+    ]
+  },
+  "filesystem": {
+    "allow": ["$HOME/.docker"]
+  },
+  "network": {
+    "allow_domain": ["registry.hub.docker.com"],
+    "credentials": ["openai", "anthropic"]
+  }
 }`;
 
 export default function OsSandboxPage() {
@@ -382,9 +377,9 @@ export default function OsSandboxPage() {
           className="md:col-span-1"
         />
         <InfraCodeBlock
-          code={landlockCode}
-          language="rust"
-          filename="crates/nono/src/sandbox/linux.rs"
+          code={profileOverrideCode}
+          language="json"
+          filename="profiles/no-docker.json"
           className="md:col-span-1"
         />
 

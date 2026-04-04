@@ -27,6 +27,7 @@ const columns: FooterColumn[] = [
       { label: "OS Sandbox", href: "/os-sandbox" },
       { label: "Python Sandbox", href: "/python-sandbox" },
       { label: "Node.js Sandbox", href: "/node-sandbox" },
+      { label: "Go Sandbox", href: "/go-sandbox" },
     ],
   },
   {
@@ -37,6 +38,9 @@ const columns: FooterColumn[] = [
       { label: "Audit Trail", href: "/audit-trail" },
       { label: "Provenance", href: "/provenance" },
       { label: "Runtime Supervisor", href: "/runtime-supervisor" },
+      { label: "Network Filtering", href: "/network-filtering" },
+      { label: "Credential Injection", href: "/credential-injection" },
+      { label: "Ghost Sessions", href: "/ghost-sessions" },
     ],
   },
   {

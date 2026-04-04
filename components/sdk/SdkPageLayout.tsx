@@ -45,8 +45,8 @@ export function SdkPageLayout({
             </p>
 
             <div className="flex items-center gap-4">
-              <div className="inline-flex items-center px-4 py-2.5 border border-code-border bg-code-bg">
-                <code className="font-mono text-sm text-code-text">
+              <div className="inline-flex items-center px-4 py-2.5 border border-terminal-border bg-terminal-bg">
+                <code className="font-mono text-sm text-terminal-text">
                   {installCommand}
                 </code>
               </div>

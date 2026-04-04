@@ -21,45 +21,58 @@ export const metadata: Metadata = {
 const quickStart = `package main
 
 import (
+	"log"
 	"github.com/always-further/nono-go"
 )
 
 func main() {
-	// Define capabilities
-	caps := nono.NewCapabilitySet()
-	caps.AllowPath("/project", nono.ReadWrite)
-	caps.AllowFile("/home/user/.gitconfig", nono.Read)
-	caps.BlockNetwork() // deny all outbound connections
+	caps := nono.New()
+	defer caps.Close()
 
-	// Apply sandbox (irrevocable)
-	if err := nono.Apply(caps); err != nil {
+	if err := caps.AllowPath("/home/user/data", nono.AccessRead); err != nil {
+		log.Fatal(err)
+	}
+	if err := caps.AllowPath("/tmp", nono.AccessReadWrite); err != nil {
+		log.Fatal(err)
+	}
+	if err := caps.SetNetworkMode(nono.NetworkBlocked); err != nil {
 		log.Fatal(err)
 	}
 
-	// Your agent code runs here, fully sandboxed
-	agent.Run()
+	// Irreversible — applies to this process and all children.
+	if err := nono.Apply(caps); err != nil {
+		log.Fatal(err)
+	}
 }`;
 
 const queryCode = `package main
 
 import (
 	"fmt"
+	"log"
 	"github.com/always-further/nono-go"
 )
 
 func main() {
-	// Check platform support
-	info := nono.SupportInfo()
-	fmt.Println(info.Platform, info.Details)
+	caps := nono.New()
+	if err := caps.AllowPath("/home/user/data", nono.AccessRead); err != nil {
+		log.Fatal(err)
+	}
+	if err := caps.SetNetworkMode(nono.NetworkAllowAll); err != nil {
+		log.Fatal(err)
+	}
 
-	// Build capabilities and dry-run check
-	caps := nono.NewCapabilitySet()
-	caps.AllowPath("/project", nono.ReadWrite)
+	qc, err := nono.NewQueryContext(caps)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer qc.Close()
 
-	ctx := nono.NewQueryContext(caps)
-	result := ctx.QueryPath("/etc/passwd", nono.Read)
-	fmt.Println(result.Status) // "denied"
-	fmt.Println(result.Reason) // explains why
+	result, err := qc.QueryPath("/home/user/data/file.txt", nono.AccessRead)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(result.Status) // nono.QueryAllowed
 }`;
 
 export default function GoSdkPage() {
@@ -85,7 +98,9 @@ export default function GoSdkPage() {
               </code>
               , the SDK applies kernel-level Landlock rules (Linux) or Seatbelt
               profiles (macOS) to the current process. The sandbox is irrevocable
-              &mdash; it cannot be loosened after application.
+              &mdash; it cannot be loosened after application. Static libraries
+              for macOS (arm64, amd64) and Linux (amd64, arm64) are bundled in
+              the repository.
             </p>
             <p>
               This means your Go AI agent and every subprocess it spawns operate
@@ -93,13 +108,13 @@ export default function GoSdkPage() {
               at the kernel level, not by application-level checks that can be
               bypassed. Use{" "}
               <code className="px-1.5 py-0.5 rounded bg-code-bg border border-border font-mono text-xs">
-                QueryContext
+                NewQueryContext
               </code>{" "}
               to dry-run permission checks and{" "}
               <code className="px-1.5 py-0.5 rounded bg-code-bg border border-border font-mono text-xs">
                 SandboxState
               </code>{" "}
-              to serialize capability sets.
+              to serialize capability sets to JSON.
             </p>
           </div>
         </GlassCard>
@@ -152,17 +167,17 @@ export default function GoSdkPage() {
               {
                 icon: Lock,
                 title: "CapabilitySet",
-                desc: "Builder pattern for defining filesystem access, network blocking, and command rules. Irrevocable after Apply().",
+                desc: "Created via nono.New(). AllowPath(), AllowFile(), and SetNetworkMode() define access rules. Irrevocable after Apply().",
               },
               {
                 icon: Search,
                 title: "QueryContext",
-                desc: "Dry-run permission checks against a capability set. Test whether a path or network access would be allowed before applying.",
+                desc: "Created via NewQueryContext(caps). QueryPath() and QueryNetwork() dry-run permission checks. The capability set is cloned internally.",
               },
               {
                 icon: Shield,
                 title: "SandboxState",
-                desc: "Serialize and deserialize capability sets to JSON. Persist sandbox configurations or transfer them between processes.",
+                desc: "StateFromCaps() and StateFromJSON() serialize and deserialize capability sets. ToJSON() exports, ToCaps() restores.",
               },
             ].map((item) => (
               <div key={item.title}>

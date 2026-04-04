@@ -16,9 +16,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "audit-trail",
     "provenance",
     "runtime-supervisor",
+    "network-filtering",
+    "credential-injection",
+    "ghost-sessions",
   ];
 
-  const sandboxPages = ["python-sandbox", "node-sandbox"];
+  const sandboxPages = ["python-sandbox", "node-sandbox", "go-sandbox"];
 
   const sdkPages = ["python-sdk", "typescript-sdk", "go-sdk", "cli"];
 

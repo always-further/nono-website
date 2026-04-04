@@ -15,6 +15,9 @@ import {
   Shield,
   Code,
   FileCode,
+  Globe,
+  KeyRound,
+  Terminal,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { DOCS_URL } from "@/lib/site";
@@ -65,6 +68,12 @@ const sandboxDropdown: DropdownItem[] = [
     description: "Isolate Node.js AI agents",
     icon: FileCode,
   },
+  {
+    href: "/go-sandbox",
+    label: "Go Sandbox",
+    description: "Isolate Go AI agents",
+    icon: Code,
+  },
 ];
 
 const featuresDropdown: DropdownItem[] = [
@@ -97,6 +106,24 @@ const featuresDropdown: DropdownItem[] = [
     label: "Runtime Supervisor",
     description: "Dynamic permission supervisor",
     icon: Shield,
+  },
+  {
+    href: "/network-filtering",
+    label: "Network Filtering",
+    description: "Domain-level access control",
+    icon: Globe,
+  },
+  {
+    href: "/credential-injection",
+    label: "Credential Injection",
+    description: "Proxy-based secret management",
+    icon: KeyRound,
+  },
+  {
+    href: "/ghost-sessions",
+    label: "Ghost Sessions",
+    description: "Detachable session lifecycle",
+    icon: Terminal,
   },
 ];
 

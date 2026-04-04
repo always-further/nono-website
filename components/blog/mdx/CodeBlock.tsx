@@ -51,20 +51,20 @@ export function CodeBlock({
   };
 
   return (
-    <div className="my-6 overflow-hidden border border-code-border bg-code-bg text-code-text">
-      <div className="flex items-center justify-between px-4 py-2 border-b border-code-border">
-        <span className="text-xs font-mono text-code-text/60">
+    <div className="my-6 overflow-hidden border border-terminal-border bg-terminal-bg text-terminal-text">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-terminal-border">
+        <span className="text-xs font-mono text-terminal-text/60">
           {filename ?? language}
         </span>
         <div className="flex items-center gap-3">
           {filename && (
-            <span className="text-xs text-code-text/40 uppercase tracking-wider font-mono">
+            <span className="text-xs text-terminal-text/40 uppercase tracking-wider font-mono">
               {language}
             </span>
           )}
           <button
             onClick={handleCopy}
-            className="p-1 text-code-text/40 hover:text-code-text transition-colors"
+            className="p-1 text-terminal-text/40 hover:text-terminal-text transition-colors"
             aria-label="Copy code"
           >
             {copied ? <Check size={14} /> : <Copy size={14} />}

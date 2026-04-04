@@ -20,9 +20,13 @@
   --border: rgba(0, 0, 0, 0.1);
   --border-strong: rgba(0, 0, 0, 0.2);
 
-  --code-bg: #f5f5f5;
-  --code-text: #333333;
+  --code-bg: #f0f0ee;
+  --code-text: #1a1a1a;
   --code-border: rgba(0, 0, 0, 0.1);
+
+  --terminal-bg: #1a1a1a;
+  --terminal-text: #d4d4d4;
+  --terminal-border: rgba(0, 0, 0, 0.15);
 
   --selection-bg: rgba(232, 115, 74, 0.2);
   --selection-color: #1a1a1a;
@@ -54,6 +58,10 @@
   --code-text: #d4d4d4;
   --code-border: rgba(255, 255, 255, 0.1);
 
+  --terminal-bg: #0a0a0a;
+  --terminal-text: #d4d4d4;
+  --terminal-border: rgba(255, 255, 255, 0.1);
+
   --selection-bg: rgba(232, 115, 74, 0.3);
   --selection-color: white;
   --btn-primary-bg: #e8734a;
@@ -79,6 +87,9 @@
   --color-code-bg: var(--code-bg);
   --color-code-text: var(--code-text);
   --color-code-border: var(--code-border);
+  --color-terminal-bg: var(--terminal-bg);
+  --color-terminal-text: var(--terminal-text);
+  --color-terminal-border: var(--terminal-border);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
