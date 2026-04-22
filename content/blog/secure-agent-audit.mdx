@@ -99,7 +99,7 @@ chain[0] = H(leaf[0])
 chain[i] = H(chain[i-1] ‖ leaf[i])
 ```
 
-This adds a second, complementary integrity property. The Merkle root proves "the set of events is exactly this." The chain proves "and they happened in exactly this order, one after another." An attacker who tries to delete, reorder, or splice events has to break both at once. This is insanely hard to do, unless you are a galaxy-brained adversary who can tap stars for compute power and break the hash function itself.
+This adds a second, complementary integrity property. The Merkle root proves "the set of events is exactly this." The chain proves "and they happened in exactly this order, one after another." An attacker who tries to delete, reorder, or splice events has to break both at once. This is insanely hard to do, unless you are able to tap into the suns entire energy output for the compute power needed to break the hash function itself.
 
 Every hash operation uses **domain separation** — a constant string mixed in so that a leaf hash can never be confused with an internal-node hash or a chain hash. nono tags every domain: `"nono.audit.event.alpha"`, `"nono.audit.chain.alpha"`, `"nono.audit.merkle.alpha"`. This is a small detail with a big payoff: it structurally prevents length-extension and type-confusion attacks between the three hashing contexts.
 
@@ -212,7 +212,7 @@ Only if all three pass does `nono audit verify` return `VERIFIED`. Anything else
 
 ---
 
-## Why this is the dogs bollocks of Agent security
+## The Threat Model: What can an attacker actually do?
 
 So if we bring the threat model together. Suppose an attacker has full code execution as the sandboxed agent. What can they actually do to the record?
 
