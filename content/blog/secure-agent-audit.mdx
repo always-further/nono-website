@@ -7,15 +7,9 @@ authorRole: "Maintainer"
 tags: ["audit", "security", "agents", "cryptography", "open source", "merkle trees", "in-toto", "DSSE"]
 ---
 
-# What Really Happened In There? A Tamper-Evident Audit Trail for AI Agents
+# The problem with "trust me, bro" logs
 
-*How nono records every action an AI agent makes in an agent inaccessable, append-only Merkle tree - with a signed verifiable root, and lets anyone verify after the fact — with cryptographic proof — that the record was not forged, edited, or tampered with in any way, shape or form.*
-
----
-
-## The problem with "trust me, bro" logs
-
-If you run an autonomous AI agent on your machine, you are giving a language model permission to open files, run commands, touch your filesystem, and reach out to the network. You know its dangerous, but you have to trust it to do the right thing. You have to trust it to tell you the truth about what it did, and quite often they are infallible liars.
+If you run an autonomous AI agent on your machine, you are giving a language model permission to open files, run commands, touch your filesystem, and reach out to the network. You know its dangerous, but you have to trust it to do the right thing. You have to trust it to tell you the truth about what it did, and quite often they are outright liars.
 
 ![Trust me bro](/llm-fib.png)
 
