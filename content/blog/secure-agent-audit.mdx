@@ -1,0 +1,266 @@
+---
+title: "What Really Happened In There? A Tamper-Evident Audit Trail for AI Agents"
+date: "2026-04-22"
+description: "How nono records every action an AI agent makes in an append-only Merkle tree the agent itself cannot reach, signs the root of that tree with a private key, and lets anyone verify after the fact — with cryptographic proof — that the record was not forged, edited, or truncated."
+author: "Luke Hinds"
+authorRole: "Maintainer"
+tags: ["audit", "security", "agents", "cryptography", "open source", "merkle trees", "in-toto", "DSSE"]
+---
+
+# What Really Happened In There? A Tamper-Evident Audit Trail for AI Agents
+
+![Title / hero image](/audit-record-arch-title.png)
+
+*How nono records every capability decision an AI agent makes in an append-only Merkle tree the agent itself cannot reach, signs the root of that tree with a private key, and lets anyone verify after the fact — with cryptographic proof — that the record was not forged, edited, or truncated.*
+
+---
+
+## The problem with "trust me, bro" logs
+
+If you run an autonomous coding agent on your machine — Claude Code, Codex, or any of the others — you are giving a language model permission to open files, run commands, touch your filesystem, and reach out to the network. That is the whole point. It is also a lot of power.
+
+So: **what actually happened during that session?**
+
+Most tooling hands you a log file. A log file is a story the program tells about itself. If the program is compromised — or if the agent has managed to write somewhere it shouldn't — the log becomes part of the attack surface. "I didn't touch `.env`" is not evidence when the same process that might have touched `.env` is the one writing the log entry that says so.
+
+An audit trail for an untrusted process has to survive a very specific adversary: **the process it is auditing**. That means:
+
+1. The audit writer cannot be the audited process.
+2. The record has to be structured so that after-the-fact edits are detectable, not just discouraged.
+3. The record has to be bound to the binary that actually ran, not just "a command called `node`".
+4. A third party — not the host that produced the log — has to be able to verify all of the above.
+
+This post describes how [nono](https://nono.sh) does each of these, walks through the crypto well enough that "Merkle tree" and "inclusion proof" stop being buzzwords, and shows why the combination makes nono the strongest open-source audit trail available for agent execution today.
+
+---
+
+## nono's core architecture in one minute
+
+nono runs untrusted agent commands inside an OS-enforced sandbox (Landlock on Linux, Seatbelt on macOS). The defining structural choice is **two processes**:
+
+- A **supervisor** (the parent) — trusted, unsandboxed, owns policy and auditing.
+- A **child** — the untrusted agent, fully sandboxed before `exec`.
+
+The kernel mediates every boundary crossing between them. Capability requests (e.g. "the agent tried to `openat(/etc/shadow)`") are trapped by a seccomp BPF filter and delivered to the supervisor as seccomp-notify events. The supervisor decides; the kernel enforces.
+
+The audit trail lives entirely in the supervisor. The sandboxed child does not write its own audit log. It cannot open the audit file, it cannot `ptrace` the supervisor, and it has no shared memory with it. The child *generates* events by doing things; the supervisor is the sole *recorder* of what happened.
+
+![Two processes](/audit-record-arch-one.png)
+
+---
+
+## A five-minute crash course in Merkle trees
+
+Before we get to what nono does with them, a short detour on the data structure that does all the work.
+
+### Hashes, but structured
+
+A **cryptographic hash** (SHA-256 is what nono uses) takes arbitrary bytes and returns a 32-byte fingerprint. Two properties matter:
+
+- Change even one bit of input, the hash changes unpredictably.
+- You cannot (in practice) construct two different inputs that hash to the same output.
+
+A single hash is good for proving "this exact blob was not modified." But we have many events — thousands of capability decisions per session. Hashing them all into one blob means to prove *one* event happened, you have to re-hand-over *every* event.
+
+A **Merkle tree** fixes this. You:
+
+1. Hash each event individually — these are the **leaves**.
+2. Pair the leaves and hash each pair together — you get the next level up.
+3. Keep pairing and hashing until you end up with a single hash at the top: the **Merkle root**.
+
+The root is one 32-byte value that cryptographically commits to every leaf underneath it. Change any leaf and the root changes. Truncate the tree and the root changes. Reorder the leaves and the root changes.
+
+![merkle proof](/audit-record-arch-two.png)
+
+### Inclusion proofs: one value, no full replay
+
+Here is the quiet superpower. If I give you the Merkle root and then later claim "event #3 really was in the log" — I don't have to show you the whole log to prove it. I just have to show you:
+
+- Event #3 itself
+- The sibling hash at each level going up to the root (a handful of 32-byte values — `log₂ N` of them)
+
+You re-hash upward. If you land on the same root you already know, event #3 was definitely in the tree. Nothing else about the tree had to be revealed.
+
+This is called an **inclusion proof** or **audit proof**. It is the same trick Certificate Transparency uses to prove a TLS cert is in a public log without downloading the whole log. It is the same trick [Sigstore Rekor](https://docs.sigstore.dev/logging/overview/) uses to prove a signature was recorded.
+
+![merkle inclusion proof two](/audit-record-arch-two-half.png)
+
+### Append-only chaining
+
+The other trick nono layers on top is **hash chaining**. In addition to the Merkle tree, every event in the log also includes the hash of the previous event's chain head. So:
+
+```
+chain[0] = H(leaf[0])
+chain[i] = H(chain[i-1] ‖ leaf[i])
+```
+
+This adds a second, complementary integrity property. The Merkle root proves "the set of events is exactly this." The chain proves "and they happened in exactly this order, one after another." An attacker who tries to delete, reorder, or splice events has to break both at once.
+
+Every hash operation uses **domain separation** — a constant string mixed in so that a leaf hash can never be confused with an internal-node hash or a chain hash. nono tags every domain: `"nono.audit.event.alpha\n"`, `"nono.audit.chain.alpha\n"`, `"nono.audit.merkle.alpha\n"`. This is a small detail with a big payoff: it structurally prevents length-extension and type-confusion attacks between the three hashing contexts.
+
+This is the same construction recommended by [RFC 6962 (Certificate Transparency)](https://datatracker.ietf.org/doc/html/rfc6962). It is standard, well-analyzed cryptography, not novel crypto.
+
+---
+
+## What nono actually records
+
+Every supervised session produces a directory under `~/.nono/audit/<session_id>/`:
+
+| File | What it is |
+|---|---|
+| `session.json` | Session metadata: command, timings, exit code, executable identity, filesystem Merkle roots (pre/post), audit integrity summary |
+| `audit-events.ndjson` | The append-only event log — one JSON line per event, each line carries its own leaf hash and chain hash |
+| `audit-attestation.bundle` | Optional DSSE/in-toto signed attestation over the Merkle root |
+
+The event log captures, at minimum:
+
+- `SessionStarted` and `SessionEnded` boundaries
+- Every `CapabilityDecision` — the path the child tried to open, whether it was approved or denied, by which rule
+- `UrlOpen` events from the agent
+- `Network` events from the outbound proxy (DNS resolution, hostname, approval decision)
+
+Every event carries a monotonically increasing sequence number, the canonical JSON bytes that were hashed (so verification binds to exact bytes, not a re-serialization), the leaf hash, and the chain hash. The whole log closes with an `AuditIntegritySummary` recording `{ hash_algorithm: "sha256", event_count, chain_head, merkle_root }` in `session.json`.
+
+![Session directory](/audit-record-arch-three.png)
+---
+
+## Binary identity: *what* actually ran
+
+An event log that says `exec("node")` is not useful evidence. `node` is a wrapper around whatever `$PATH` happened to resolve to, against whatever binary happened to be sitting on disk, in whatever state someone left it.
+
+Before the supervisor `exec`s the child, it does two things:
+
+1. **Canonicalizes the executable path.** `$PATH` resolution, symlink following, all of it, collapsed to the single absolute path the kernel will actually load.
+2. **Computes the SHA-256 of that binary's bytes.**
+
+Both are recorded in session metadata as an `ExecutableIdentity { resolved_path, sha256 }`. This means the audit trail is bound not to a command-line string but to **the exact bytes of the executable that ran** — and the Merkle root commits over session metadata alongside the events, so tampering with the recorded binary identity invalidates the root.
+
+This is a narrower claim than full runtime provenance — shared libraries, interpreters, and scripts passed as arguments are not (yet) covered. But it's a meaningful claim: "a binary with this SHA-256 was launched at this path, and here is every capability it requested while running."
+
+![Executable identity](/audit-record-arch-four.png)
+
+---
+
+## Filesystem state: pre- and post-roots
+
+For a session with writable capabilities, nono also constructs a second, independent Merkle tree — this one over **the contents of the user-granted writable paths**.
+
+- Before the agent starts, the supervisor walks the tracked paths and computes a Merkle root over `(path, file_content_hash)` leaves. This is the **pre-root**.
+- After the agent exits, it walks them again and computes the **post-root**.
+
+Both roots are recorded in session metadata. If pre- and post-roots differ, the filesystem changed. If they're identical, it is cryptographically provable — not merely asserted — that nothing in the tracked paths changed during the session.
+
+Crucially, this works even when full rollback is not enabled. The old way (commit `4ec61c2`) was: either you paid for full content-addressable snapshots, or you got nothing. Now, audit-only sessions get a lightweight `AuditSnapshotState` that computes the roots without storing object copies. You get tamper-evident proof of change-or-no-change for free.
+
+---
+
+## Signing the root: keyed attestation over Merkle commitments
+
+Hashes alone tell you "the log hasn't been edited *relative to the root you already have*." They don't tell you the root itself wasn't swapped out. That's what signatures are for.
+
+When invoked with `--audit-sign-key <SECRET_REF>`, the supervisor at session finalization:
+
+1. Builds an in-toto statement with:
+   - `subject.name = "audit-session:<session_id>"`
+   - `subject.digest.sha256 = <audit merkle root>`
+   - `predicateType = "https://nono.sh/attestation/audit-session/alpha"`
+   - `predicate` = JSON payload with session_id, command, timings, exit code, event count, chain head, executable identity, signer key id
+2. Signs that statement with a PKCS#8 private key loaded through nono's `trust` service.
+3. Wraps the signature in a [DSSE envelope](https://github.com/secure-systems-lab/dsse) (standard format used by Sigstore and in-toto).
+4. Writes it to `audit-attestation.bundle` in the session directory.
+
+The signing key can come from a file, system keyring, 1Password, Apple Keychain, an environment variable, or any other trust-service-supported secret reference — the secrets never hit disk in plaintext.
+
+The signature is over the Merkle root plus bound context. So to forge a session an attacker must:
+
+- Rewrite `audit-events.ndjson` (easy if they have write access)
+- *And* recompute a Merkle root they like
+- *And* sign that root with the attestation key they do not have
+
+The only degree of freedom an attacker without the key has is to delete the attestation bundle entirely — which is obvious on verification (a signed session missing its bundle is a bright red flag), not silent forgery.
+
+![Attestation bundle](/audit-record-arch-five.png)
+
+---
+
+## `nono audit verify`: three-layer proof
+
+A single command ties the whole thing together:
+
+```
+nono audit verify <session_id> [--public-key-file key.pem] [--json]
+```
+
+This runs three independent checks:
+
+**1. Event log integrity.** Re-parse `audit-events.ndjson`, recompute every leaf hash from the canonical event bytes, re-chain, rebuild the Merkle tree, and confirm every recorded `prev_chain`, `leaf_hash`, `chain_hash`, and the final root match. Any single altered byte — in any event, anywhere — fails this step.
+
+**2. Global ledger inclusion.** Every finalized session on a host also commits a single row into `~/.nono/audit/ledger.ndjson` — a hash-chained global ledger across sessions. `verify` computes this session's **session digest** (a domain-separated SHA-256 over the canonical session payload) and proves it is present, at the right position, in an internally consistent chain. This is what makes "the host pretended this session never happened" detectable, not just "the host edited this session."
+
+**3. Attestation verification.** If an attestation bundle exists, `verify` loads it, validates the DSSE signature, and confirms the signed statement's Merkle root matches the session's. With `--public-key-file`, verification is **pinned to a specific expected signer key** — preventing the "attacker rewrites session *and* the embedded public key in session metadata" failure mode. Without it, verification uses the key the session itself claims, which catches honest corruption but not a coordinated-rewrite adversary.
+
+Only if all three pass does `nono audit verify` return `VERIFIED`. Anything else returns `MISMATCH` with a specific reason.
+
+![nono audit verify](/audit-record-arch-six.png)
+
+---
+
+## Why this is structurally strong
+
+Bring the threat model together. Suppose an attacker has full code execution as the sandboxed agent. What can they actually do to the record?
+
+| Attack | What structurally stops it |
+|---|---|
+| Write to the audit file directly | Landlock / Seatbelt — the audit directory is not in the child's allowed set. The child literally cannot `openat` it. |
+| Reach into the supervisor to alter the in-memory record | No shared memory, ptrace blocked, IPC is length-prefixed JSON parsed by serde in memory-safe Rust. |
+| Edit events after the session ends | Every event's leaf hash feeds the Merkle root; any edit changes the root; the root is signed. |
+| Truncate the log | Chain hash and event count recorded in the summary; truncation is detected on verify. |
+| Delete the session entirely | Global hash-chained ledger at `~/.nono/audit/ledger.ndjson` — missing session = broken chain. |
+| Replace the binary that ran with one of the same name | `ExecutableIdentity` commits the SHA-256 of the actual file loaded; change it and the signed root becomes invalid. |
+| Swap the public key in session metadata so a forged sig verifies | `--public-key-file` pins verification to an expected key; out-of-band key distribution beats in-band swaps. |
+| Forge a new session entirely | Requires the attestation signing key, which lives in the operator's keystore, not the host's filesystem. |
+
+The one attack this does **not** structurally prevent is a host attacker who has *both* arbitrary code execution as the operator *and* access to the signing key. That is an inherent limit of local signing; the answer is external anchoring (transparency logs, TSA timestamping, remote witnesses) — visible future work, not a silent gap.
+
+For every other adversary on the list, the defense isn't "we watch for it." The defense is that the adversary's attempt produces a different Merkle root, a different chain, or a different signature — and `nono audit verify` will notice.
+
+---
+
+## Why this matters for agent security
+
+The short answer: most "agent security" today is policy without proof. Rules get written, decisions get made, and you are trusted to believe the program's own narrative about what it did.
+
+nono flips that. The sandbox decides policy at runtime; the audit trail makes every one of those decisions, every binary executed, and every filesystem change into cryptographic evidence. Three independent people — the operator who ran the agent, the engineer reviewing it next week, and an auditor six months from now — can all verify the same session and arrive at the same answer, without trusting each other and without trusting the host.
+
+That is what a tamper-evident audit trail looks like. It's what agent execution has been missing. And it is fully open source.
+
+Try it:
+
+```
+nono run --audit-integrity --audit-sign-key keystore://nono-audit -- claude
+nono audit verify <session_id> --public-key-file nono-audit.pub
+```
+
+---
+
+## Appendix: crypto specifics for the curious
+
+- Hash function: SHA-256 everywhere
+- Domain separators (RFC 6962 style):
+  - `"nono.audit.event.alpha\n"` — leaf hashing
+  - `"nono.audit.chain.alpha\n"` — per-event hash chain
+  - `"nono.audit.merkle.alpha\n"` — internal Merkle nodes
+  - `"nono.audit.session-digest.alpha\n"` — session digest for ledger
+  - `"nono.audit.ledger.chain.alpha\n"` — global ledger chain
+- Leaf prefix byte `0x00`, internal-node prefix byte `0x01` — prevents second-preimage via leaf/node confusion
+- Attestation format: DSSE envelope wrapping an in-toto v1 statement
+- Predicate type: `https://nono.sh/attestation/audit-session/alpha`
+- Subject digest: the audit Merkle root, hex-encoded
+- Global ledger locking: `flock(2)` advisory lock on `~/.nono/audit/ledger.lock` for safe concurrent finalization
+
+# Documentation links:
+
+- [nono audit documentation](https://nono.sh/docs/cli/features/audit)
+- [nono security model](https://nono.sh/docs/cli/internals/security-model)
+- [Certificate Transparency and Merkle trees](https://www.certificate-transparency.org/merkle-trees)
+- [in-toto and DSSE](https://in-toto.io/)
