@@ -24,7 +24,7 @@ An audit trail for an untrusted process has to survive a very specific adversary
 3. The record has to be bound to the binary that actually ran, not just "a command called `node`".
 4. A third party — not the host that produced the log — has to be able to verify all of the above.
 
-This post describes how [nono](https://nono.sh) does each of these, walks through the crypto well enough that "Merkle tree" and "inclusion proof" finally make sense, and shows why the combination makes nono the strongest open-source audit AI audit trail available for agent execution today, anywhere on planet Earth (the last bit is a bold claim, but I stand by it).
+This post describes how [nono](https://nono.sh) does each of these, walks through the crypto well enough that "Merkle tree" and "inclusion proof" finally make sense, and shows why the combination makes nono the strongest AI audit system for agent execution today, anywhere on planet Earth (the last bit is a bold claim, but I apologise, I'm a bit biased, I promise to be objective in my analysis from now on.)
 
 ---
 
@@ -238,4 +238,3 @@ For every other adversary on the list, the defense isn't "we watch for it." The 
 The truth is most "agent security" today is policy without proof. Rules get written, decisions get made, and you are trusted to believe the program's own narrative about what it did. Audit is recording the prompt from api calls back and forth to `/api/chat/completions` and selling that as Agentic security auditing.
 
 With nono, the kernel decides policy at runtime; the audit trail makes every one of those decisions, every binary executed, and every filesystem change into cryptographic evidence. Three independent people — the operator who ran the agent, the engineer reviewing it next week, and an auditor six months from now — can all verify the same session and arrive at the same answer, without trusting each other and without trusting the host, and most importantly, without trusting the agent itself.
-
