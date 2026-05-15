@@ -1,7 +1,6 @@
 import { InfraPageLayout } from "@/components/infrastructure/InfraPageLayout";
 import { InfraCodeBlock } from "@/components/infrastructure/InfraCodeBlock";
-import { KernelEnforcementDiagram } from "@/components/infrastructure/KernelEnforcementDiagram";
-import { ProcessInheritanceDiagram } from "@/components/infrastructure/ProcessInheritanceDiagram";
+
 import { GlassCard } from "@/components/ui/GlassCard";
 import {
   Lock,
@@ -213,14 +212,6 @@ export default function NodeSandboxPage() {
             </p>
           </div>
         </GlassCard>
-
-        {/* Diagrams */}
-        <div className="md:col-span-2">
-          <KernelEnforcementDiagram />
-        </div>
-        <div className="md:col-span-2">
-          <ProcessInheritanceDiagram runtime="node" />
-        </div>
 
         {/* Code examples */}
         <InfraCodeBlock
