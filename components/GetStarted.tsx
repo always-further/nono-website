@@ -104,11 +104,11 @@ export default function GetStarted() {
             <Step
               label="Find a package"
               command="nono search pi"
-              result="nolabs-ai/pi"
+              result="always-further/pi"
             />
             <Step
               label="Run it, sandboxed"
-              command="nono run --profile nolabs-ai/pi -- pi"
+              command="nono run --profile always-further/pi -- pi"
             />
           </div>
         </div>
