@@ -12,7 +12,7 @@
 
 set -eu
 
-REPO="always-further/nono"
+REPO="nolabs-ai/nono"
 BIN="nono"
 
 err()  { printf 'error: %s\n' "$1" >&2; exit 1; }
